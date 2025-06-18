@@ -22,6 +22,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Create gradle wrapper directory
+        run: mkdir -p gradle/wrapper
+
+      - name: Download gradle-wrapper.jar
+        run: |
+          curl -L "https://services.gradle.org/distributions/gradle-8.14.2-bin.zip" --output gradle-distribution.zip
+          unzip -j gradle-distribution.zip "gradle-8.14.2/lib/gradle-wrapper.jar" -d gradle/wrapper/
+          rm gradle-distribution.zip
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
