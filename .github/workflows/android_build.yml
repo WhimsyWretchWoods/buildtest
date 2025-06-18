@@ -22,31 +22,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # CORRECTED WORKAROUND: Manually download and place gradle-wrapper.jar
-      - name: Create gradle wrapper directory
-        run: mkdir -p gradle/wrapper
-
-      - name: Download gradle-wrapper.jar and place it correctly
-        run: |
-          # Download the full binary distribution (it contains the necessary tiny gradle-wrapper.jar)
-          curl -L "https://services.gradle.org/distributions/gradle-8.14.2-bin.zip" --output gradle-distribution.zip
-
-          # Extract *only* the gradle-wrapper.jar from its *correct* internal path
-          # and place it into your project's gradle/wrapper/ directory.
-          # The -j flag junk paths, but we specify the exact output directory.
-          unzip -j gradle-distribution.zip "gradle-8.14.2/gradle/wrapper/gradle-wrapper.jar" -d gradle/wrapper/
-          
-          # Clean up the downloaded zip file
-          rm gradle-distribution.zip
-        env:
-          GRADLE_VERSION: 8.14.2 # Define version as env variable for clarity
-      # END CORRECTED WORKAROUND
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build debug APK
-        # This command will now find the gradle-wrapper.jar placed by the workaround
+        # This command will now find the gradle-wrapper.jar directly in your repo
         # and then proceed to download the larger Gradle distribution as per gradle-wrapper.properties
         run: ./gradlew assembleDebug
 
