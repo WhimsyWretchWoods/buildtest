@@ -6,12 +6,12 @@ plugins {
 
 
 android {
-    namespace = "app.test"
+    namespace = "app.breeze"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "app.test"
-        minSdk = 24
+        applicationId = "app.breeze"
+        minSdk = 33
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
