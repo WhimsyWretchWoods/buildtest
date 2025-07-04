@@ -33,7 +33,75 @@ jobs:
           echo "storeFile=release-key.jks" > ./keystore.properties
           echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> ./keystore.properties
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> ./keystore.properties
+          ename: Android CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # --- START: Release Build Specific Steps (for APK) ---
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > app/release-key.jks
+
+      - name: Create Keystore Properties
+        run: |
+          echo "storeFile=release-key.jks" > ./keystore.properties
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> ./keystore.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> ./keystore.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> ./keystore.properties
+        working-directory: app
+
+      - name: Clean Project
+        # Add this step to force a clean build, clearing any stale caches/configs.
+        run: ./gradlew clean
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+        env:
+          ORG_GRADLE_PROJECT_storeFile: app/release-key.jks
+          ORG_GRADLE_PROJECT_storePassword: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+
+      # --- END: Release Build Specific Steps ---
+
+      # Optional: You can keep the debug build for testing purposes if needed
+      # - name: Build debug APK
+      #   run: ./gradlew assembleDebug
+      # - name: Upload debug APK artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: debug-apk
+      #     path: app/build/outputs/apk/debug/app-debug.apk
+cho "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> ./keystore.properties
         working-directory: app
       - name: Build release APK
         run: ./gradlew assembleRelease
