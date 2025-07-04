@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ApkBuildTest"
+rootProject.name = "Breeze"
 include(":app")
