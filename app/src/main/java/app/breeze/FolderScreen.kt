@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,7 +24,7 @@ import android.net.Uri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FolderScreen(navController: NavController, scrollBehavior: TopAppBarScrollBehavior) {
+fun FolderScreen(navController: NavController) {
     val context = LocalContext.current
     var folders by remember { mutableStateOf<List<ImageFolder>>(emptyList()) }
 
