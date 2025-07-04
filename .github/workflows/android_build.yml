@@ -49,8 +49,13 @@ jobs:
           ORG_GRADLE_PROJECT_keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      - name: Find generated APK
+        # This command will list all .apk files in the outputs directory.
+        # Look for the exact filename in the output of this step.
+        run: find app/build/outputs/apk/release -name "*.apk" -print
+
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/app-release.apk # Keep this as default for now
