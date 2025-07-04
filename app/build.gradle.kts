@@ -17,21 +17,8 @@ android {
     }
 
     buildTypes {
-        // Use 'named("release") { ... }' for explicit configuration
-        named("release") {
+        release {
             isMinifyEnabled = true
-            shrinkResources = true // This should now be resolved
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-
-            // --- SIGNING CONFIGURATION (for GitHub Actions) ---
-            // You will need to define 'release' signingConfig elsewhere,
-            // likely by injecting secrets in your GitHub Actions workflow.
-            // Example: signingConfig = signingConfigs.getByName("release")
-        }
-        // Use 'named("debug") { ... }' for explicit configuration
-        named("debug") {
-            isMinifyEnabled = false
-            shrinkResources = false // This should also be resolved
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -46,9 +33,7 @@ android {
         compose = true
     }
     composeOptions {
-        // This MUST be a Compose Compiler version (e.g., 1.5.x, 1.6.x),
-        // NOT the Kotlin plugin version.
-        kotlinCompilerExtensionVersion = "1.6.11" // Ensure this is correct
+        kotlinCompilerExtensionVersion = "2.1.21"
     }
     packaging {
         resources {
