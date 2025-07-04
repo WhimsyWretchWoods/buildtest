@@ -9,7 +9,7 @@
         android:allowBackup="true"
         android:label="Breeze"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Light.NoTitleBar">
+        android:theme="@style/Theme.Breeze">
         <activity
             android:name=".MainActivity"
             android:exported="true">
