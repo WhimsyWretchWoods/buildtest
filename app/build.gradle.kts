@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    // Keep this plugin version as it is, it's for the Kotlin plugin itself
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
 }
 
@@ -18,20 +17,19 @@ android {
     }
 
     buildTypes {
-        release {
-            // Enable code shrinking, obfuscation, and optimization with R8.
+        // Use 'named("release") { ... }' for explicit configuration
+        named("release") {
             isMinifyEnabled = true
-            // Enable resource shrinking to remove unused resources.
             shrinkResources = true // This should now be resolved
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
             // --- SIGNING CONFIGURATION (for GitHub Actions) ---
             // You will need to define 'release' signingConfig elsewhere,
             // likely by injecting secrets in your GitHub Actions workflow.
-            // Example: signingConfig signingConfigs.release
+            // Example: signingConfig = signingConfigs.getByName("release")
         }
-        debug {
-            // Debug builds are typically not minified or shrunk for faster builds and easier debugging.
+        // Use 'named("debug") { ... }' for explicit configuration
+        named("debug") {
             isMinifyEnabled = false
             shrinkResources = false // This should also be resolved
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -48,10 +46,9 @@ android {
         compose = true
     }
     composeOptions {
-        // --- CORRECTED COMPOSE COMPILER EXTENSION VERSION ---
         // This MUST be a Compose Compiler version (e.g., 1.5.x, 1.6.x),
         // NOT the Kotlin plugin version.
-        kotlinCompilerExtensionVersion = "1.6.11" // Changed from "2.1.21"
+        kotlinCompilerExtensionVersion = "1.6.11" // Ensure this is correct
     }
     packaging {
         resources {
