@@ -8,8 +8,7 @@
     <application
         android:allowBackup="true"
         android:label="Breeze"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
             android:exported="true">
