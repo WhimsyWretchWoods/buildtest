@@ -10,7 +10,6 @@
         android:label="Breeze"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material.Light.NoActionBar">
-    </style>
         <activity
             android:name=".MainActivity"
             android:exported="true">
