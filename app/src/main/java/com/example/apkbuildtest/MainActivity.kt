@@ -1,4 +1,4 @@
-package com.example.apkbuildtest
+package app.test
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
