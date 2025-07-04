@@ -33,7 +33,8 @@ fun MainApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -68,21 +69,19 @@ fun MainApp() {
         }
     ) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        val titleText = when (currentRoute) {
-                            AppRoutes.FOLDER_SCREEN -> "Folders"
-                            AppRoutes.IMAGE_SCREEN -> "?"
-                            AppRoutes.FULL_SCREEN -> "?"
-                            AppRoutes.ABOUT_SCREEN -> "About"
-                            else -> "App"
-                        }
                         Text(
-                            titleText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                            when (currentRoute) {
+                                AppRoutes.FOLDER_SCREEN -> "Folders"
+                                AppRoutes.IMAGE_SCREEN -> "?"
+                                AppRoutes.FULL_SCREEN -> "?"
+                                AppRoutes.ABOUT_SCREEN -> "About"
+                                else -> "App"
+                            )
+                        }
                     },
                     navigationIcon = {
                         if (currentRoute != AppRoutes.FOLDER_SCREEN) {
@@ -118,7 +117,7 @@ fun MainApp() {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(AppRoutes.FOLDER_SCREEN) {
-                    FolderScreen(navController = navController, scrollBehavior = scrollBehavior)
+                    FolderScreen(navController = navController)
                 }
                 composable(
                     route = AppRoutes.IMAGE_SCREEN,
