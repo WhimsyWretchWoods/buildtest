@@ -8,6 +8,15 @@ android {
     namespace = "app.breeze"
     compileSdk = 35
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("ORG_GRADLE_PROJECT_storeFile") ?: "release-key.jks")
+            storePassword = System.getenv("ORG_GRADLE_PROJECT_storePassword")
+            keyAlias = System.getenv("ORG_GRADLE_PROJECT_keyAlias")
+            keyPassword = System.getenv("ORG_GRADLE_PROJECT_keyPassword")
+        }
+    }
+
     defaultConfig {
         applicationId = "app.breeze"
         minSdk = 33
