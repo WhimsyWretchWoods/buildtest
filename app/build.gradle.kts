@@ -10,7 +10,8 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("ORG_GRADLE_PROJECT_storeFile") ?: "release-key.jks")
+            // --- FIX: Use rootProject.file() to correctly locate the keystore ---
+            storeFile = rootProject.file(System.getenv("ORG_GRADLE_PROJECT_storeFile") ?: "app/release-key.jks")
             storePassword = System.getenv("ORG_GRADLE_PROJECT_storePassword")
             keyAlias = System.getenv("ORG_GRADLE_PROJECT_keyAlias")
             keyPassword = System.getenv("ORG_GRADLE_PROJECT_keyPassword")
@@ -30,7 +31,11 @@ android {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
-      }
+        }
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -43,7 +48,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "2.1.21"
+        kotlinCompilerExtensionVersion = "1.6.11"
     }
     packaging {
         resources {
