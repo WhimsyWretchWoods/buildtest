@@ -25,13 +25,26 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        # This command will now find the gradle-wrapper.jar directly in your repo
-        # and then proceed to download the larger Gradle distribution as per gradle-wrapper.properties
-        run: ./gradlew assembleDebug
+      - name: Decode Keystore
+        run: echo "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > app/release-key.jks
 
-      - name: Upload APK artifact
+      - name: Create Keystore Properties
+        run: |
+          echo "storeFile=release-key.jks" > ./keystore.properties
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> ./keystore.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> ./keystore.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> ./keystore.properties
+        working-directory: app
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+        env:
+          ORG_GRADLE_PROJECT_storeFile: app/release-key.jks
+          ORG_GRADLE_PROJECT_storePassword: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: release-apk
+          path: app/build/outputs/apk/release/app-release.apk
