@@ -80,8 +80,8 @@ fun MainApp() {
                                 AppRoutes.FULL_SCREEN -> "?"
                                 AppRoutes.ABOUT_SCREEN -> "About"
                                 else -> "App"
-                            )
-                        }
+                            }
+                        )
                     },
                     navigationIcon = {
                         if (currentRoute != AppRoutes.FOLDER_SCREEN) {
@@ -109,8 +109,7 @@ fun MainApp() {
                     scrollBehavior = scrollBehavior
                 )
             }
-        ) {
-            innerPadding ->
+        ) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = AppRoutes.FOLDER_SCREEN,
@@ -124,8 +123,7 @@ fun MainApp() {
                     arguments = listOf(navArgument("folderPath") {
                         type = NavType.StringType
                     })
-                ) {
-                    backStackEntry ->
+                ) { backStackEntry ->
                     val folderPath = backStackEntry.arguments?.getString("folderPath") ?: ""
                     ImageScreen(navController = navController, folderPath)
                 }
@@ -135,8 +133,7 @@ fun MainApp() {
                     arguments = listOf(navArgument("imageUri") {
                         type = NavType.StringType
                     })
-                ) {
-                    backStackEntry ->
+                ) { backStackEntry ->
                     val imageUri = backStackEntry.arguments?.getString("imageUri") ?: ""
                     FullScreen(imageUri)
                 }
