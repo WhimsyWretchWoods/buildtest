@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun ImageScreen(navController: NavController, folderPath: String) {
+fun ImageScreen(navController: NavController, folderPath: String, folderName: String) {
     val context = LocalContext.current
     var images by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
@@ -62,7 +62,7 @@ fun ImageScreen(navController: NavController, folderPath: String) {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text(folderPath) },
+                title = { Text(folderName) },
                 navigationIcon = {
                     if (isInSelectionMode) {
                         Spacer(Modifier.width(0.dp))
