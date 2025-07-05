@@ -1,10 +1,15 @@
 package app.breeze
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import coil.compose.AsyncImage
 import androidx.compose.runtime.*
@@ -26,8 +31,9 @@ import app.breeze.ui.components.ConfirmDeleteDialog
 import app.breeze.ui.components.InfoDialog
 import app.breeze.ui.components.SelectionFloatingToolbar
 import androidx.compose.ui.Alignment
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ImageScreen(navController: NavController, folderPath: String, folderName: String) {
     val context = LocalContext.current
@@ -61,17 +67,15 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            LargeFlexibleTopAppBar(
                 title = { Text(folderName) },
                 navigationIcon = {
-                    if (isInSelectionMode) {
-                        Spacer(Modifier.width(0.dp))
-                    } else {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                        }
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                expandedHeight = 150.dp,
+                collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
                 scrollBehavior = scrollBehavior
             )
         },
@@ -90,7 +94,7 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
         ) {
             items(images) { uri ->
                 val isSelected = selectedImageUris.contains(uri.toString())
-                Box( // Set contentAlignment here
+                Box(
                     modifier = Modifier
                         .padding(2.dp)
                         .aspectRatio(1f)
@@ -131,7 +135,7 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
                             Icons.Default.CheckCircle,
                             contentDescription = "Selected",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier // Removed .align() here
+                            modifier = Modifier
                                 .padding(4.dp)
                                 .size(24.dp)
                         )
