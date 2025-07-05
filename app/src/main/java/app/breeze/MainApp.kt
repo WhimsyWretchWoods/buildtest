@@ -87,8 +87,8 @@ fun MainApp() {
                 navArgument("folderName") {type = NavType.StringType}
             )
         ) { backStackEntry ->
-            val folderPath = backStackEntry.arguments?.getString("folderPath") ?: ""
-            val folderName = backStackEntry.arguments?.getString("folderPath") ?: ""
+            val folderPath = backStackEntry.arguments?.getString("folderPath") ?: "null"
+            val folderName = backStackEntry.arguments?.getString("folderName") ?: "null"
             ImageScreen(navController = navController, folderPath, folderName)
         }
         composable(
