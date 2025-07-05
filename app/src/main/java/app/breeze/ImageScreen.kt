@@ -80,12 +80,14 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
             )
         },
         floatingActionButton = {
-            SelectionFloatingToolbar(
-                isInSelectionMode = isInSelectionMode,
-                onClearSelection = { clearImageSelection() },
-                onDeleteClick = { showDeleteConfirmationDialog = true },
-                onInfoClick = { showInfoDialog = true }
-            )
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                SelectionFloatingToolbar(
+                    isInSelectionMode = isInSelectionMode,
+                    onClearSelection = { clearImageSelection() },
+                    onDeleteClick = { showDeleteConfirmationDialog = true },
+                    onInfoClick = { showInfoDialog = true }
+                )
+            }
         }
     ) { innerPadding ->
         LazyVerticalGrid(
