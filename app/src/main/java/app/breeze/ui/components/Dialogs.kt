@@ -6,7 +6,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.items 
+import androidx.compose.material3.MaterialTheme
+
 @Composable
 fun ConfirmDeleteDialog(
     showDialog: Boolean,
@@ -47,8 +49,12 @@ fun InfoDialog(
             onDismissRequest = onDismiss,
             title = { Text(title) },
             text = {
-                LazyColumn() {
+                LazyColumn {
                     items(infoItems) { item ->
+                        Text(
+                            text = "Path",
+                            color = MaterialTheme.colorScheme.primary
+                        )
                         Text(item)
                     }
                 }
