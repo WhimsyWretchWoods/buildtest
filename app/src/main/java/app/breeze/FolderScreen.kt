@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,8 +30,9 @@ import app.breeze.ui.components.SelectionFloatingToolbar
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import android.net.Uri
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FolderScreen(navController: NavController) {
     val context = LocalContext.current
@@ -70,11 +71,11 @@ fun FolderScreen(navController: NavController) {
             ModalDrawerSheet {
                 Spacer(Modifier.height(16.dp))
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Info, contentDescription = null) },
-                    label = { Text("About") },
+                    icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                    label = { Text("Settings") },
                     selected = false,
                     onClick = {
-                        navController.navigate(AppRoutes.ABOUT_SCREEN)
+                        navController.navigate(AppRoutes.SETTINGS_SCREEN)
                         scope.launch { drawerState.close() }
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
@@ -85,19 +86,17 @@ fun FolderScreen(navController: NavController) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                LargeTopAppBar(
+                LargeFlexibleTopAppBar(
                     title = { Text("Folders") },
                     navigationIcon = {
-                        if (isInSelectionMode) {
-                            Spacer(Modifier.width(0.dp))
-                        } else {
-                            IconButton(onClick = {
-                                scope.launch { drawerState.open() }
-                            }) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menu")
-                            }
+                        IconButton(onClick = {
+                            scope.launch { drawerState.open() }
+                        }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
+                    expandedHeight = 150.dp,
+                    collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
                     scrollBehavior = scrollBehavior
                 )
             },
@@ -119,6 +118,8 @@ fun FolderScreen(navController: NavController) {
                     Card(
                         modifier = Modifier
                             .padding(8.dp)
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
                             .combinedClickable(
                                 onLongClick = {
                                     toggleFolderSelection(folder.path)
@@ -144,27 +145,33 @@ fun FolderScreen(navController: NavController) {
                                 } else Modifier
                             )
                     ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.TopEnd
+                        ) {
                             AsyncImage(
                                 model = folder.thumbnailUri,
-                                contentDescription = null,
-                                modifier = Modifier.aspectRatio(1f),
+                                contentDescription = folder.name,
+                                modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                             if (isSelected) {
                                 Icon(
                                     Icons.Default.CheckCircle,
                                     contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .padding(4.dp)
                                         .size(24.dp)
                                 )
+                            }
                         }
-                        
-                       Text(
-                        text = folder.name,
-                        modifier = Modifier
-                            .padding(8.dp)
-                    )
+                        Text(
+                            text = folder.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                        )
                     }
                 }
             }
