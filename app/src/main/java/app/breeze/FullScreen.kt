@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.clip.clip
+import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import net.engawapg.lib.zoomable.rememberZoomState
