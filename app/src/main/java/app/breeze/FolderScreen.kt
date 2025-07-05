@@ -147,8 +147,8 @@ fun FolderScreen(navController: NavController) {
                     ) {
                             AsyncImage(
                                 model = folder.thumbnailUri,
-                                contentDescription = folder.name,
-                                modifier = Modifier.fillMaxSize(),
+                                contentDescription = null,
+                                modifier = Modifier.aspectRatio(1f),
                                 contentScale = ContentScale.Crop
                             )
                             if (isSelected) {
