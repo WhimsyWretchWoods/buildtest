@@ -90,7 +90,7 @@ fun ImageScreen(navController: NavController, folderPath: String) {
         ) {
             items(images) { uri ->
                 val isSelected = selectedImageUris.contains(uri.toString())
-                Box(
+                Box( // Set contentAlignment here
                     modifier = Modifier
                         .padding(2.dp)
                         .aspectRatio(1f)
@@ -117,7 +117,8 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                 )
                             } else Modifier
-                        )
+                        ),
+                    contentAlignment = Alignment.TopEnd
                 ) {
                     AsyncImage(
                         model = uri,
@@ -130,8 +131,7 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                             Icons.Default.CheckCircle,
                             contentDescription = "Selected",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
+                            modifier = Modifier // Removed .align() here
                                 .padding(4.dp)
                                 .size(24.dp)
                         )
