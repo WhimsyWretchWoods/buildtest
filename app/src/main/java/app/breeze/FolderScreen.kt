@@ -165,10 +165,7 @@ fun FolderScreen(navController: NavController) {
                         }
                     }
                     Text(
-                        text = folder.name,
-                        modifier = Modifier
-                            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                            .fillMaxWidth()
+                        text = folder.name
                     )
                 }
             }
