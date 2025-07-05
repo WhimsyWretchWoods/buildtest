@@ -1,10 +1,11 @@
 package app.breeze
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.*
 import androidx.navigation.compose.*
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import android.net.Uri
 
 @Composable
 fun MainApp() {
@@ -12,7 +13,11 @@ fun MainApp() {
 
     NavHost(
         navController = navController,
-        startDestination = AppRoutes.FOLDER_SCREEN
+        startDestination = AppRoutes.FOLDER_SCREEN,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
     ) {
         composable(AppRoutes.FOLDER_SCREEN) {
             FolderScreen(navController = navController)
