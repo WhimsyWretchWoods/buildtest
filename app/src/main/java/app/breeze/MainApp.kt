@@ -24,8 +24,8 @@ fun MainApp() {
             slideInHorizontally(
                 initialOffsetX = { fullWidth -> fullWidth },
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium
                 )
             ) + fadeIn(
                 animationSpec = spring(
@@ -38,8 +38,8 @@ fun MainApp() {
             slideOutHorizontally(
                 targetOffsetX = { fullWidth -> -fullWidth },
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium
                 )
             ) + fadeOut(
                 animationSpec = spring(
@@ -52,8 +52,8 @@ fun MainApp() {
             slideInHorizontally(
                 initialOffsetX = { fullWidth -> -fullWidth },
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium
                 )
             ) + fadeIn(
                 animationSpec = spring(
@@ -66,8 +66,8 @@ fun MainApp() {
             slideOutHorizontally(
                 targetOffsetX = { fullWidth -> fullWidth },
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium
                 )
             ) + fadeOut(
                 animationSpec = spring(
