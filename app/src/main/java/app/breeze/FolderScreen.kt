@@ -17,12 +17,10 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -45,6 +43,8 @@ fun FolderScreen(navController: NavController) {
 
     val selectedFolderPaths = remember { mutableStateListOf<String>() }
     var isInSelectionMode by remember { mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
     fun toggleFolderSelection(folderPath: String) {
         if (selectedFolderPaths.contains(folderPath)) {
@@ -93,9 +93,7 @@ fun FolderScreen(navController: NavController) {
                     title = { Text("Folders") },
                     navigationIcon = {
                         if (isInSelectionMode) {
-                            IconButton(onClick = { clearFolderSelection() }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear Selection")
-                            }
+                            Spacer(Modifier.width(0.dp))
                         } else {
                             IconButton(onClick = {
                                 scope.launch { drawerState.open() }
@@ -126,19 +124,12 @@ fun FolderScreen(navController: NavController) {
                         }
                     ) {
                         IconButton(onClick = {
-                            println("Deleting folders: $selectedFolderPaths")
-                            clearFolderSelection()
+                            showDeleteConfirmationDialog = true
                         }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete selected folders")
                         }
                         IconButton(onClick = {
-                            println("Sharing folders: $selectedFolderPaths")
-                            clearFolderSelection()
-                        }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share selected folders")
-                        }
-                        IconButton(onClick = {
-                            println("Info on folders: $selectedFolderPaths")
+                            showInfoDialog = true
                         }) {
                             Icon(Icons.Default.Info, contentDescription = "Information")
                         }
@@ -203,8 +194,56 @@ fun FolderScreen(navController: NavController) {
                             }
                         }
                     }
+                    Text(
+                        text = folder.name,
+                        modifier = Modifier
+                            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                            .fillMaxWidth()
+                    )
                 }
             }
         }
+    }
+
+    if (showInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showInfoDialog = false },
+            title = { Text("Folder Information") },
+            text = {
+                Column {
+                    Text("Selected Folders:")
+                    selectedFolderPaths.forEach { path ->
+                        Text(" - $path")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if (showDeleteConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmationDialog = false },
+            title = { Text("Confirm Deletion") },
+            text = { Text("Are you sure you want to delete ${selectedFolderPaths.size} selected folder(s)?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    println("User confirmed deletion of folders: $selectedFolderPaths")
+                    clearFolderSelection()
+                    showDeleteConfirmationDialog = false
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmationDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
