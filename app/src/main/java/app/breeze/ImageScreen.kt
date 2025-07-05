@@ -85,25 +85,7 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
                 HorizontalFloatingToolbar(
-                    actions = {
-                        IconButton(onClick = {
-                            println("Deleting images: $selectedImageUris")
-                            clearImageSelection()
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete selected images")
-                        }
-                        IconButton(onClick = {
-                            println("Sharing images: $selectedImageUris")
-                            clearImageSelection()
-                        }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share selected images")
-                        }
-                        IconButton(onClick = {
-                            println("Info on images: $selectedImageUris")
-                        }) {
-                            Icon(Icons.Default.Info, contentDescription = "Image info")
-                        }
-                    },
+                    expanded = true,
                     floatingActionButton = {
                         FloatingActionButton(
                             onClick = { clearImageSelection() },
@@ -113,7 +95,25 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                             Icon(Icons.Default.Clear, "Exit selection mode")
                         }
                     }
-                )
+                ) {
+                    IconButton(onClick = {
+                        println("Deleting images: $selectedImageUris")
+                        clearImageSelection()
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete selected images")
+                    }
+                    IconButton(onClick = {
+                        println("Sharing images: $selectedImageUris")
+                        clearImageSelection()
+                    }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share selected images")
+                    }
+                    IconButton(onClick = {
+                        println("Info on images: $selectedImageUris")
+                    }) {
+                        Icon(Icons.Default.Info, contentDescription = "Image info")
+                    }
+                }
             }
         }
     ) { innerPadding ->
