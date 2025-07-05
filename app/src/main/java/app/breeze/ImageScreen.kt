@@ -10,40 +10,60 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.clickable
-
-import app.breeze.AppRoutes
-import app.breeze.data.ImageFetcher
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageScreen(navController: NavController, folderPath: String) {
     val context = LocalContext.current
-    var images by remember {
-        mutableStateOf<List<Uri>>(emptyList())
-    }
+    var images by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
     LaunchedEffect(folderPath) {
         images = ImageFetcher.getImagesInFolder(context, folderPath)
     }
 
-    LazyVerticalGrid(columns = GridCells.Fixed(3)) {
-        items(images) {
-            uri ->
-            AsyncImage(
-                model = uri,
-                contentDescription = null,
-                modifier = Modifier
-                .padding(2.dp)
-                .aspectRatio(1f)
-                .clickable {
-                    navController.navigate(
-                        AppRoutes.FULL_SCREEN.replace("{imageUri}", Uri.encode(uri.toString()))
-                    )
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(folderPath) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 },
-                contentScale = ContentScale.Crop
+                scrollBehavior = scrollBehavior
             )
         }
+    ) { innerPadding ->
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            items(images) { uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .aspectRatio(1f)
+                        .clickable {
+                            navController.navigate(
+                                AppRoutes.FULL_SCREEN.replace(
+                                    "{imageUri}",
+                                    Uri.encode(uri.toString())
+                                )
+                            )
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
     }
-
 }
