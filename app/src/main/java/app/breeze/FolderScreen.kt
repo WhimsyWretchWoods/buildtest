@@ -114,25 +114,7 @@ fun FolderScreen(navController: NavController) {
                     exit = slideOutVertically(targetOffsetY = { it })
                 ) {
                     HorizontalFloatingToolbar(
-                        actions = {
-                            IconButton(onClick = {
-                                println("Deleting folders: $selectedFolderPaths")
-                                clearFolderSelection()
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete selected folders")
-                            }
-                            IconButton(onClick = {
-                                println("Sharing folders: $selectedFolderPaths")
-                                clearFolderSelection()
-                            }) {
-                                Icon(Icons.Default.Share, contentDescription = "Share selected folders")
-                            }
-                            IconButton(onClick = {
-                                println("Info on folders: $selectedFolderPaths")
-                            }) {
-                                Icon(Icons.Default.Info, contentDescription = "Information")
-                            }
-                        },
+                        expanded = true,
                         floatingActionButton = {
                             FloatingActionButton(
                                 onClick = { clearFolderSelection() },
@@ -142,7 +124,25 @@ fun FolderScreen(navController: NavController) {
                                 Icon(Icons.Default.Clear, "Exit selection mode")
                             }
                         }
-                    )
+                    ) {
+                        IconButton(onClick = {
+                            println("Deleting folders: $selectedFolderPaths")
+                            clearFolderSelection()
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete selected folders")
+                        }
+                        IconButton(onClick = {
+                            println("Sharing folders: $selectedFolderPaths")
+                            clearFolderSelection()
+                        }) {
+                            Icon(Icons.Default.Share, contentDescription = "Share selected folders")
+                        }
+                        IconButton(onClick = {
+                            println("Info on folders: $selectedFolderPaths")
+                        }) {
+                            Icon(Icons.Default.Info, contentDescription = "Information")
+                        }
+                    }
                 }
             }
         ) { innerPadding ->
