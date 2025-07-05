@@ -97,13 +97,13 @@ fun FolderScreen(navController: NavController) {
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
-                        Text(
+                    }
+                    Text(
                             text = folder.name,
                             modifier = Modifier
                                 .padding(8.dp)
                                 .fillMaxWidth()
                         )
-                    }
                 }
             }
         }
