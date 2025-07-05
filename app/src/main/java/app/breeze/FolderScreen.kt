@@ -128,10 +128,9 @@ fun FolderScreen(navController: NavController) {
                                         toggleFolderSelection(folder.path)
                                     } else {
                                         navController.navigate(
-                                            AppRoutes.IMAGE_SCREEN.replace(
-                                                "{folderPath}",
-                                                Uri.encode(folder.path)
-                                            )
+                                            AppRoutes.IMAGE_SCREEN
+                                                .replace("{folderPath}", Uri.encode(folder.path))
+                                                .replace("{folderName}", Uri.encode(folder.name))
                                         )
                                     }
                                 }
