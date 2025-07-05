@@ -35,6 +35,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import android.net.Uri
+import androidx.compose.material.icons.filled.CheckCircle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -132,7 +133,7 @@ fun FolderScreen(navController: NavController) {
                                 Icon(Icons.Default.Info, contentDescription = "Information")
                             }
                         },
-                        content = {
+                        floatingActionButton = {
                             FloatingActionButton(
                                 onClick = { clearFolderSelection() },
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
