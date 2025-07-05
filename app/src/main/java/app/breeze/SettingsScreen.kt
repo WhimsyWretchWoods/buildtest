@@ -5,7 +5,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.clickable
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -47,11 +46,11 @@ fun SettingsScreen(navController: NavController) {
                 initialChecked = false
             )
 
-            Divider(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
 
             SettingSwitchItem(
                 label = "High Quality Previews",
-                description = "Display higher resolution previews (uses more data).",
+                description = "Display higher resolution previews.",
                 initialChecked = true
             )
 
