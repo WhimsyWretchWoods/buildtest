@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import app.breeze.data.ImageFetcher
 import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.CheckCircle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -103,7 +104,7 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                             Icon(Icons.Default.Info, contentDescription = "Image info")
                         }
                     },
-                    content = {
+                    floatingActionButton = {
                         FloatingActionButton(
                             onClick = { clearImageSelection() },
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
