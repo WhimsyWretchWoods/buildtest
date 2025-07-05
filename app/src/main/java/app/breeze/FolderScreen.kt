@@ -27,17 +27,29 @@ import app.breeze.ui.components.SelectionFloatingToolbar
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun FolderScreen(navController: NavController) {
     val context = LocalContext.current
-    var folders by remember { mutableStateOf<List<ImageFolder>>(emptyList()) }
+    var folders by remember {
+        mutableStateOf<List<ImageFolder>>(emptyList())
+    }
 
-    val selectedFolderPaths = remember { mutableStateListOf<String>() }
-    var isInSelectionMode by remember { mutableStateOf(false) }
-    var showInfoDialog by remember { mutableStateOf(false) }
-    var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
+    val selectedFolderPaths = remember {
+        mutableStateListOf<String>()
+    }
+    var isInSelectionMode by remember {
+        mutableStateOf(false)
+    }
+    var showInfoDialog by remember {
+        mutableStateOf(false)
+    }
+    var showDeleteConfirmationDialog by remember {
+        mutableStateOf(false)
+    }
 
     fun toggleFolderSelection(folderPath: String) {
         if (selectedFolderPaths.contains(folderPath)) {
@@ -67,12 +79,18 @@ fun FolderScreen(navController: NavController) {
             ModalDrawerSheet {
                 Spacer(Modifier.height(16.dp))
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Info, contentDescription = null) },
-                    label = { Text("About") },
+                    icon = {
+                        Icon(Icons.Default.Info, contentDescription = null)
+                    },
+                    label = {
+                        Text("About")
+                    },
                     selected = false,
                     onClick = {
                         navController.navigate(AppRoutes.ABOUT_SCREEN)
-                        scope.launch { drawerState.close() }
+                        scope.launch {
+                            drawerState.close()
+                        }
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
@@ -83,13 +101,17 @@ fun FolderScreen(navController: NavController) {
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 LargeTopAppBar(
-                    title = { Text("Folders") },
+                    title = {
+                        Text("Folders")
+                    },
                     navigationIcon = {
                         if (isInSelectionMode) {
                             Spacer(Modifier.width(0.dp))
                         } else {
                             IconButton(onClick = {
-                                scope.launch { drawerState.open() }
+                                scope.launch {
+                                    drawerState.open()
+                                }
                             }) {
                                 Icon(Icons.Default.Menu, contentDescription = "Menu")
                             }
@@ -101,72 +123,79 @@ fun FolderScreen(navController: NavController) {
             floatingActionButton = {
                 SelectionFloatingToolbar(
                     isInSelectionMode = isInSelectionMode,
-                    onClearSelection = { clearFolderSelection() },
-                    onDeleteClick = { showDeleteConfirmationDialog = true },
-                    onInfoClick = { showInfoDialog = true }
+                    onClearSelection = {
+                        clearFolderSelection()
+                    },
+                    onDeleteClick = {
+                        showDeleteConfirmationDialog = true
+                    },
+                    onInfoClick = {
+                        showInfoDialog = true
+                    }
                 )
             }
-        ) { innerPadding ->
+        ) {
+            innerPadding ->
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.padding(innerPadding)
             ) {
-                items(folders) { folder ->
+                items(folders) {
+                    folder ->
                     val isSelected = selectedFolderPaths.contains(folder.path)
                     Card(
                         modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .combinedClickable(
-                                onLongClick = {
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .combinedClickable(
+                            onLongClick = {
+                                toggleFolderSelection(folder.path)
+                            },
+                            onClick = {
+                                if (isInSelectionMode) {
                                     toggleFolderSelection(folder.path)
-                                },
-                                onClick = {
-                                    if (isInSelectionMode) {
-                                        toggleFolderSelection(folder.path)
-                                    } else {
-                                        navController.navigate(
-                                            AppRoutes.IMAGE_SCREEN.replace(
-                                                "{folderPath}",
-                                                Uri.encode(folder.path)
-                                            )
+                                } else {
+                                    navController.navigate(
+                                        AppRoutes.IMAGE_SCREEN.replace(
+                                            "{folderPath}",
+                                            Uri.encode(folder.path)
                                         )
-                                    }
-                                }
-                            )
-                            .then(
-                                if (isSelected) {
-                                    Modifier.background(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                        shape = RoundedCornerShape(12.dp)
                                     )
-                                } else Modifier
-                            )
-                    ) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AsyncImage(
-                                model = folder.thumbnailUri,
-                                contentDescription = folder.name,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                            if (isSelected) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    contentDescription = "Selected",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(4.dp)
-                                        .size(24.dp)
-                                )
+                                }
                             }
+                        )
+                        .then(
+                            if (isSelected) {
+                                Modifier.background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                            } else Modifier
+                        )
+                    ) {
+
+                        AsyncImage(
+                            model = folder.thumbnailUri,
+                            contentDescription = folder.name,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        if (isSelected) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Selected",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .size(24.dp)
+                            )
                         }
+                        Text(
+                            text = folder.name
+                        )
                     }
-                    Text(
-                        text = folder.name
-                    )
                 }
             }
         }
@@ -174,14 +203,18 @@ fun FolderScreen(navController: NavController) {
 
     InfoDialog(
         showDialog = showInfoDialog,
-        onDismiss = { showInfoDialog = false },
+        onDismiss = {
+            showInfoDialog = false
+        },
         title = "Folder Information",
         infoItems = selectedFolderPaths.toList()
     )
 
     ConfirmDeleteDialog(
         showDialog = showDeleteConfirmationDialog,
-        onDismiss = { showDeleteConfirmationDialog = false },
+        onDismiss = {
+            showDeleteConfirmationDialog = false
+        },
         onConfirm = {
             println("User confirmed deletion of folders: $selectedFolderPaths")
             clearFolderSelection()
