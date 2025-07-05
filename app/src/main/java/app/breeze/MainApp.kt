@@ -100,8 +100,8 @@ fun MainApp() {
             val imageUri = backStackEntry.arguments?.getString("imageUri") ?: ""
             FullScreen(imageUri, navController)
         }
-        composable(AppRoutes.ABOUT_SCREEN) {
-            AboutScreen(navController)
+        composable(AppRoutes.SETTINGS_SCREEN) {
+            SettingsScreen(navController)
         }
     }
 }
