@@ -119,8 +119,6 @@ fun FolderScreen(navController: NavController) {
                     Card(
                         modifier = Modifier
                             .padding(8.dp)
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
                             .combinedClickable(
                                 onLongClick = {
                                     toggleFolderSelection(folder.path)
@@ -147,10 +145,6 @@ fun FolderScreen(navController: NavController) {
                                 } else Modifier
                             )
                     ) {
-                        Box( // Set contentAlignment here
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.TopEnd
-                        ) {
                             AsyncImage(
                                 model = folder.thumbnailUri,
                                 contentDescription = folder.name,
@@ -161,20 +155,18 @@ fun FolderScreen(navController: NavController) {
                                 Icon(
                                     Icons.Default.CheckCircle,
                                     contentDescription = "Selected",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier // Removed .align() here
+                                    modifier = Modifier
                                         .padding(4.dp)
                                         .size(24.dp)
                                 )
-                            }
                         }
-                    }
-                    Text(
+                        
+                       Text(
                         text = folder.name,
                         modifier = Modifier
-                            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                            .fillMaxWidth()
+                            .padding(8.dp)
                     )
+                    }
                 }
             }
         }
