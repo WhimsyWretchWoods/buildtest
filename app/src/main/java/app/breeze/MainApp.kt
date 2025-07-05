@@ -36,7 +36,7 @@ fun MainApp() {
             FullScreen(imageUri)
         }
         composable(AppRoutes.ABOUT_SCREEN) {
-            AboutScreen()
+            AboutScreen(navController)
         }
     }
 }
