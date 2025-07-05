@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -38,6 +37,8 @@ fun ImageScreen(navController: NavController, folderPath: String) {
 
     val selectedImageUris = remember { mutableStateListOf<String>() }
     var isInSelectionMode by remember { mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
 
     fun toggleImageSelection(imageUri: String) {
         if (selectedImageUris.contains(imageUri)) {
@@ -66,9 +67,7 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                 title = { Text(folderPath) },
                 navigationIcon = {
                     if (isInSelectionMode) {
-                        IconButton(onClick = { clearImageSelection() }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear Selection")
-                        }
+                        Spacer(Modifier.width(0.dp))
                     } else {
                         IconButton(onClick = { navController.navigateUp() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -97,19 +96,12 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                     }
                 ) {
                     IconButton(onClick = {
-                        println("Deleting images: $selectedImageUris")
-                        clearImageSelection()
+                        showDeleteConfirmationDialog = true
                     }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete selected images")
                     }
                     IconButton(onClick = {
-                        println("Sharing images: $selectedImageUris")
-                        clearImageSelection()
-                    }) {
-                        Icon(Icons.Default.Share, contentDescription = "Share selected images")
-                    }
-                    IconButton(onClick = {
-                        println("Info on images: $selectedImageUris")
+                        showInfoDialog = true
                     }) {
                         Icon(Icons.Default.Info, contentDescription = "Image info")
                     }
@@ -172,5 +164,47 @@ fun ImageScreen(navController: NavController, folderPath: String) {
                 }
             }
         }
+    }
+
+    if (showInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showInfoDialog = false },
+            title = { Text("Image Information") },
+            text = {
+                Column {
+                    Text("Selected Images:")
+                    selectedImageUris.forEach { uri ->
+                        Text(" - $uri")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if (showDeleteConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmationDialog = false },
+            title = { Text("Confirm Deletion") },
+            text = { Text("Are you sure you want to delete ${selectedImageUris.size} selected image(s)?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    println("User confirmed deletion of images: $selectedImageUris")
+                    clearImageSelection()
+                    showDeleteConfirmationDialog = false
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmationDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
