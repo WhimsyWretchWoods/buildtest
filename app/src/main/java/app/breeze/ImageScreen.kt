@@ -1,8 +1,5 @@
 package app.breeze
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -18,18 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import app.breeze.data.ImageFetcher
+import app.breeze.ui.components.ConfirmDeleteDialog
+import app.breeze.ui.components.InfoDialog
+import app.breeze.ui.components.SelectionFloatingToolbar
 import androidx.compose.ui.Alignment
-import androidx.compose.material.icons.filled.CheckCircle
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ImageScreen(navController: NavController, folderPath: String) {
     val context = LocalContext.current
@@ -78,35 +76,12 @@ fun ImageScreen(navController: NavController, folderPath: String) {
             )
         },
         floatingActionButton = {
-            AnimatedVisibility(
-                visible = isInSelectionMode,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
-            ) {
-                HorizontalFloatingToolbar(
-                    expanded = true,
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = { clearImageSelection() },
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ) {
-                            Icon(Icons.Default.Clear, "Exit selection mode")
-                        }
-                    }
-                ) {
-                    IconButton(onClick = {
-                        showDeleteConfirmationDialog = true
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete selected images")
-                    }
-                    IconButton(onClick = {
-                        showInfoDialog = true
-                    }) {
-                        Icon(Icons.Default.Info, contentDescription = "Image info")
-                    }
-                }
-            }
+            SelectionFloatingToolbar(
+                isInSelectionMode = isInSelectionMode,
+                onClearSelection = { clearImageSelection() },
+                onDeleteClick = { showDeleteConfirmationDialog = true },
+                onInfoClick = { showInfoDialog = true }
+            )
         }
     ) { innerPadding ->
         LazyVerticalGrid(
@@ -166,45 +141,22 @@ fun ImageScreen(navController: NavController, folderPath: String) {
         }
     }
 
-    if (showInfoDialog) {
-        AlertDialog(
-            onDismissRequest = { showInfoDialog = false },
-            title = { Text("Image Information") },
-            text = {
-                Column {
-                    Text("Selected Images:")
-                    selectedImageUris.forEach { uri ->
-                        Text(" - $uri")
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showInfoDialog = false }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
+    InfoDialog(
+        showDialog = showInfoDialog,
+        onDismiss = { showInfoDialog = false },
+        title = "Image Information",
+        infoItems = selectedImageUris.toList()
+    )
 
-    if (showDeleteConfirmationDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmationDialog = false },
-            title = { Text("Confirm Deletion") },
-            text = { Text("Are you sure you want to delete ${selectedImageUris.size} selected image(s)?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    println("User confirmed deletion of images: $selectedImageUris")
-                    clearImageSelection()
-                    showDeleteConfirmationDialog = false
-                }) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmationDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
+    ConfirmDeleteDialog(
+        showDialog = showDeleteConfirmationDialog,
+        onDismiss = { showDeleteConfirmationDialog = false },
+        onConfirm = {
+            println("User confirmed deletion of images: $selectedImageUris")
+            clearImageSelection()
+            showDeleteConfirmationDialog = false
+        },
+        itemCount = selectedImageUris.size,
+        itemType = "image"
+    )
 }
