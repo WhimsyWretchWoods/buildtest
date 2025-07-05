@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import app.breeze.data.ImageFetcher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
