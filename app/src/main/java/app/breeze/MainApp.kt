@@ -82,12 +82,14 @@ fun MainApp() {
         }
         composable(
             route = AppRoutes.IMAGE_SCREEN,
-            arguments = listOf(navArgument("folderPath") {
-                type = NavType.StringType
-            })
+            arguments = listOf(
+                navArgument("folderPath") {type = NavType.StringType},
+                navArgument("folderName") {type = NavType.StringType}
+            )
         ) { backStackEntry ->
             val folderPath = backStackEntry.arguments?.getString("folderPath") ?: ""
-            ImageScreen(navController = navController, folderPath)
+            val folderName = backStackEntry.arguments?.getString("folderPath") ?: ""
+            ImageScreen(navController = navController, folderPath, folderName)
         }
         composable(
             route = AppRoutes.FULL_SCREEN,
