@@ -5,8 +5,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Column
-
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 @Composable
 fun ConfirmDeleteDialog(
     showDialog: Boolean,
@@ -47,10 +47,9 @@ fun InfoDialog(
             onDismissRequest = onDismiss,
             title = { Text(title) },
             text = {
-                Column(modifier = modifier) {
-                    Text("Selected Items:")
-                    infoItems.forEach { item ->
-                        Text(" - $item")
+                LazyColumn() {
+                    items(infoItems) { item ->
+                        Text(item)
                     }
                 }
             },
