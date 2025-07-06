@@ -29,7 +29,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 import app.breeze.data.ImageFetcher
 import app.breeze.data.ImageDetails
-import app.breeze.data.getDetails
 import app.breeze.ui.components.ConfirmDeleteDialog
 import app.breeze.ui.components.InfoDialog
 import app.breeze.ui.components.SelectionFloatingToolbar
