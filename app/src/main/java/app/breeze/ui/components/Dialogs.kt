@@ -93,19 +93,19 @@ fun InfoDialog(
                     Text(text = "${details.path}")
 
                     Text(
-                        text = "Resolution"
+                        text = "Resolution",
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(text = "${details.width}x${details.height}")
 
                     Text(
-                        text = "Size"
+                        text = "Size",
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(text = formatFileSize(details.size))
 
                     Text(
-                        text = "Last Modified"
+                        text = "Last Modified",
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text("${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
