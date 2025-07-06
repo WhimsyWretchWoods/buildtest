@@ -22,6 +22,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -38,9 +48,6 @@ jobs:
       - name: Create empty proguard-rules.pro
         run: touch app/proguard-rules.pro
 
-      - name: Clean Project
-        run: ./gradlew clean
-
       - name: Build release APK
         run: ./gradlew assembleRelease --warning-mode all
         env:
@@ -50,12 +57,10 @@ jobs:
           ORG_GRADLE_PROJECT_keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Find generated APK
-        # This command will list all .apk files in the outputs directory.
-        # Look for the exact filename in the output of this step.
         run: find app/build/outputs/apk/release -name "*.apk" -print
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: app/build/outputs/apk/release/app-release.apk # Keep this as default for now
+          path: app/build/outputs/apk/release/app-release.apk
