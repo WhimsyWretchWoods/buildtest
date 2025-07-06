@@ -20,6 +20,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.breeze.data.AppTheme
 import app.breeze.data.ImageDetails
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ConfirmDeleteDialog(
@@ -32,8 +36,12 @@ fun ConfirmDeleteDialog(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Confirm Deletion") },
-            text = { Text("Are you sure you want to delete $itemCount selected $itemType(s)?") },
+            title = {
+                Text("Confirm Deletion")
+            },
+            text = {
+                Text("Are you sure you want to delete $itemCount selected $itemType(s)?")
+            },
             confirmButton = {
                 TextButton(onClick = onConfirm) {
                     Text("Delete")
@@ -48,6 +56,14 @@ fun ConfirmDeleteDialog(
     }
 }
 
+
+fun formatFileSize(size: Long): String {
+    if (size <= 0) return "0 B"
+    val units = arrayOf("B", "KB", "MB", "GB", "TB")
+    val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
+    return DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
+}
+
 @Composable
 fun InfoDialog(
     showDialog: Boolean,
@@ -58,15 +74,42 @@ fun InfoDialog(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Info") },
+            title = {
+                Text("Details")
+            },
             text = {
                 Column {
-                     val details = imageDetailsList.first()
-                        Text(
-                            text = "Name",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text("${details.name}")
+                    val details = imageDetailsList.first()
+                    Text(
+                        text = "Name",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(text = "${details.name}")
+
+                    Text(
+                        text = "Path",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(text = "${details.path}")
+
+                    Text(
+                        text = "Resolution"
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(text = "${details.width}x${details.height}")
+
+                    Text(
+                        text = "Size"
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(text = formatFileSize(details.size))
+
+                    Text(
+                        text = "Last Modified"
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text("${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                    .format(Date(details.dateModified * 1000))}")
                 }
             },
             confirmButton = {
@@ -78,7 +121,7 @@ fun InfoDialog(
     }
 }
 
-@Composable
+                @Composable
 fun ThemeSelectionDialog(
     showDialog: Boolean,
     onDismiss: () -> Unit,
@@ -86,28 +129,37 @@ fun ThemeSelectionDialog(
     currentTheme: AppTheme
 ) {
     if (showDialog) {
-        val themes = remember { AppTheme.values().toList() }
+        val themes = remember {
+            AppTheme.values().toList()
+        }
 
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Select Theme") },
+            title = {
+                Text("Select Theme")
+            },
             text = {
                 Column(Modifier.selectableGroup()) {
-                    themes.forEach { themeOption ->
+                    themes.forEach {
+                        themeOption ->
                         val themeDisplayName = themeOption.name
-                            .replace("_", " ")
-                            .lowercase()
-                            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                        .replace("_", " ")
+                        .lowercase()
+                        .replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase() else it.toString()
+                        }
 
                         Row(
                             Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = (themeOption == currentTheme),
-                                    onClick = { onThemeSelected(themeOption) },
-                                    role = Role.RadioButton
-                                )
-                                .padding(16.dp),
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = (themeOption == currentTheme),
+                                onClick = {
+                                    onThemeSelected(themeOption)
+                                },
+                                role = Role.RadioButton
+                            )
+                            .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
