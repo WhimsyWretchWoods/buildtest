@@ -86,23 +86,13 @@ object ImageFetcher {
             MediaStore.Images.Media.DATA
         )
 
-        val selection: String?
-        val selectionArgs: Array<String>?
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
 
         val isRootFolder = folderPath == "/storage/emulated/0" || folderPath == "/sdcard" || folderPath == context.filesDir.parentFile?.absolutePath
 
-        if (isRootFolder) {
-            selection = "${MediaStore.Images.Media.DATA} LIKE ? AND ${MediaStore.Images.Media.DATA} NOT LIKE ?"
-            selectionArgs = arrayOf(
-                "$folderPath/%",
-                "$folderPath%/%"
-            )
-        } else {
-            selection = "${MediaStore.Images.Media.DATA} LIKE ?"
-            selectionArgs = arrayOf("$folderPath/%")
-        }
+        val selection = "${MediaStore.Images.Media.DATA} LIKE ?"
+        val selectionArgs = arrayOf("$folderPath/%")
 
-        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
 
         context.contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -112,12 +102,23 @@ object ImageFetcher {
             sortOrder
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
+                val dataPath = cursor.getString(dataColumn)
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
                 )
-                imageUris.add(contentUri)
+
+                if (isRootFolder) {
+                    val file = File(dataPath)
+                    if (file.parentFile?.absolutePath == folderPath) {
+                        imageUris.add(contentUri)
+                    }
+                } else {
+                    imageUris.add(contentUri)
+                }
             }
         }
         imageUris
