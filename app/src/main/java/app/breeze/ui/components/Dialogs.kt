@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.breeze.data.AppTheme
+import app.breeze.data.ImageDetails
 
 @Composable
 fun ConfirmDeleteDialog(
@@ -52,7 +53,7 @@ fun InfoDialog(
     showDialog: Boolean,
     onDismiss: () -> Unit,
     title: String,
-    infoItems: List<String>,
+    imageDetailsList: List<ImageDetails>,
     modifier: Modifier = Modifier
 ) {
     if (showDialog) {
@@ -61,13 +62,12 @@ fun InfoDialog(
             title = { Text(title) },
             text = {
                 Column {
-                    infoItems.forEach { item ->
+                     val details = imageDetailsList.first()
                         Text(
-                            text = "Path",
+                            text = "Name",
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Text(item)
-                    }
+                        Text("${details.name}")
                 }
             },
             confirmButton = {
