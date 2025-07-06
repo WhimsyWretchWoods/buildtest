@@ -75,8 +75,6 @@ fun FolderScreen(navController: NavController) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
-                    expandedHeight = 150.dp,
-                    collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
                     scrollBehavior = scrollBehavior
                 )
             }
