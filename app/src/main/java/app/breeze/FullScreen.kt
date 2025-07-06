@@ -43,8 +43,8 @@ fun FullScreen(imageUri: String, navController: NavController) {
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
-                .padding(12.dp)
-                .size(40.dp)
+                .padding(8.dp)
+                .size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
         ) {
