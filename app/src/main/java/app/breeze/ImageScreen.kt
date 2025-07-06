@@ -26,10 +26,14 @@ import androidx.compose.material3.*
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+
 import app.breeze.data.ImageFetcher
+import app.breeze.data.ImageDetails
+import app.breeze.data.ImageDetailsFetcher
 import app.breeze.ui.components.ConfirmDeleteDialog
 import app.breeze.ui.components.InfoDialog
 import app.breeze.ui.components.SelectionFloatingToolbar
+
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
@@ -43,6 +47,9 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
     var isInSelectionMode by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
+    
+    var imageDetailsToShow by remember { mutableStateOf<List<ImageDetails>>(emptyList()) }
+    val coroutineScope = rememberCoroutineScope()
 
     fun toggleImageSelection(imageUri: String) {
         if (selectedImageUris.contains(imageUri)) {
@@ -85,7 +92,14 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
                     isInSelectionMode = isInSelectionMode,
                     onClearSelection = { clearImageSelection() },
                     onDeleteClick = { showDeleteConfirmationDialog = true },
-                    onInfoClick = { showInfoDialog = true }
+                    onInfoClick = { 
+                        coroutineScope.launch {
+                            imageDetailsToShow = selectedImageUris.mapNotNull { uriString ->
+                                ImageDetailsFetcher.getDetails(context, Uri.parse(uriString))
+                            }
+                            showInfoDialog = true
+                        }
+                     }
                 )
             }
         }
@@ -150,8 +164,7 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
     InfoDialog(
         showDialog = showInfoDialog,
         onDismiss = { showInfoDialog = false },
-        title = "Image Information",
-        infoItems = selectedImageUris.toList()
+        imageDetailsList = imageDetailsToShow
     )
 
     ConfirmDeleteDialog(
