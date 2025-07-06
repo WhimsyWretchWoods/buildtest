@@ -96,7 +96,7 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
                             }
                             showInfoDialog = true
                         }
-                     }
+                    }
                 )
             }
         }
@@ -147,9 +147,15 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = "Selected",
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .padding(4.dp)
                                 .size(24.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .padding(2.dp)
                         )
                     }
                 }
