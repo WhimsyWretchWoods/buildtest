@@ -59,8 +59,6 @@ fun SettingsScreen(navController: NavController, themeRepository: ThemePreferenc
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                expandedHeight = 150.dp,
-                collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
                 scrollBehavior = scrollBehavior
             )
         }
