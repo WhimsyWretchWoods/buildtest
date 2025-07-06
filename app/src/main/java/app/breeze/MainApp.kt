@@ -8,13 +8,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.runtime.*
-import androidx.navigation.compose.*
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import app.breeze.data.ThemePreferenceRepository
 
 @Composable
-fun MainApp() {
+fun MainApp(themeRepository: ThemePreferenceRepository) {
     val navController = rememberNavController()
 
     NavHost(
@@ -101,7 +104,7 @@ fun MainApp() {
             FullScreen(imageUri, navController)
         }
         composable(AppRoutes.SETTINGS_SCREEN) {
-            SettingsScreen(navController)
+            SettingsScreen(navController, themeRepository)
         }
     }
 }
