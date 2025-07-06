@@ -80,8 +80,6 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                expandedHeight = 150.dp,
-                collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
                 scrollBehavior = scrollBehavior
             )
         },
