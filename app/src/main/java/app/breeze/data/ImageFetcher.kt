@@ -123,4 +123,31 @@ object ImageFetcher {
         }
         imageUris
     }
+    
+    suspend fun getDetails(context: Context, imageUri: Uri): ImageDetails? {
+        val projection = arrayOf(
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.SIZE,
+            MediaStore.Images.Media.WIDTH,
+            MediaStore.Images.Media.HEIGHT,
+            MediaStore.Images.Media.DATA,
+            MediaStore.Images.Media.DATE_MODIFIED
+        )
+
+        context.contentResolver.query(imageUri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                return ImageDetails(
+                    uri = imageUri,
+                    name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)),
+                    size = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)),
+                    width = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.WIDTH)),
+                    height = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.HEIGHT)),
+                    path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)),
+                    dateModified = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))
+                )
+            }
+        }
+        return null
+    }
+
 }
