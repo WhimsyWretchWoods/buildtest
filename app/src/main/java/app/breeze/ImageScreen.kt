@@ -149,7 +149,6 @@ fun ImageScreen(navController: NavController, folderPath: String, folderName: St
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = "Selected",
-                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .padding(4.dp)
                                 .size(24.dp)
