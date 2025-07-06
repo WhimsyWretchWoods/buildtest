@@ -52,14 +52,13 @@ fun ConfirmDeleteDialog(
 fun InfoDialog(
     showDialog: Boolean,
     onDismiss: () -> Unit,
-    title: String,
     imageDetailsList: List<ImageDetails>,
     modifier: Modifier = Modifier
 ) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text(title) },
+            title = { Text("Info") },
             text = {
                 Column {
                      val details = imageDetailsList.first()
