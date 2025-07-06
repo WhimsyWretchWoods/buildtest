@@ -75,7 +75,7 @@ fun SettingsScreen(navController: NavController, themeRepository: ThemePreferenc
             Text(
                 text = "Appearance",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp, bottom = 8.dp)
