@@ -72,7 +72,16 @@ fun SettingsScreen(navController: NavController, themeRepository: ThemePreferenc
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SettingsGroup(title = "Appearance") {
+            Text(
+                text = "Appearance",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp)
+                    .padding(horizontal = 8.dp)
+            )
+            SettingsGroupContent {
                 SettingClickableItem(
                     label = "Theme",
                     description = "${currentAppTheme.name.replace("_", " ").lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}",
@@ -98,7 +107,7 @@ fun SettingsScreen(navController: NavController, themeRepository: ThemePreferenc
 }
 
 @Composable
-fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
+fun SettingsGroupContent(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -109,12 +118,6 @@ fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
             )
             .padding(16.dp)
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
         content()
     }
 }
