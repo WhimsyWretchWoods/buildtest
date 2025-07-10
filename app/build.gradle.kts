@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "app.breeze"
+    namespace = "log.video"
     compileSdk = 35
 
     signingConfigs {
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "app.breeze"
+        applicationId = "log.video"
         minSdk = 33
         targetSdk = 35
         versionCode = 1
@@ -61,11 +61,10 @@ android {
 
 dependencies {
     implementation("androidx.compose.ui:ui:1.9.0-beta02")
-    implementation("androidx.compose.material3:material3:1.4.0-alpha17")
+    implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.activity:activity-compose:1.10.1")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("net.engawapg.lib:zoomable:2.8.0")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
 }
