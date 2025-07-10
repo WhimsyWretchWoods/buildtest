@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Breeze"
+rootProject.name = "Video"
 include(":app")
