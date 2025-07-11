@@ -32,6 +32,9 @@ import androidx.media3.ui.CaptionStyleCompat
 import android.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.activity.ComponentActivity
 
 @Composable
 fun FolderList(navController: NavController) {
@@ -132,6 +135,7 @@ fun VideoList(navController: NavController, folderId: String) {
 fun VideoPlayer(videoUri: String) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
+    val lifecycleOwner = LocalContext.current as ComponentActivity
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
@@ -142,8 +146,24 @@ fun VideoPlayer(videoUri: String) {
     }
 
     DisposableEffect(Unit) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    exoPlayer.playWhenReady = false 
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    exoPlayer.playWhenReady = true
+                }
+                Lifecycle.Event.ON_STOP -> {
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
         onDispose {
             exoPlayer.release()
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
