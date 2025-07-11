@@ -135,15 +135,15 @@ fun VideoPlayer(videoUri: String) {
         }
     }
 
-    DisposableEffect(
-        AndroidView(factory = { ctx ->
-            androidx.media3.ui.PlayerView(ctx).apply {
-                player = exoPlayer
-            }
-        }, modifier = Modifier.fillMaxSize())
-    ) {
+    DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
+
+    AndroidView(factory = { ctx ->
+        androidx.media3.ui.PlayerView(ctx).apply {
+            player = exoPlayer
+        }
+    }, modifier = Modifier.fillMaxSize())
 }
