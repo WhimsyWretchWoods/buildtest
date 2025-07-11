@@ -139,7 +139,6 @@ fun VideoPlayer(videoUri: String) {
         AndroidView(factory = { ctx ->
             androidx.media3.ui.PlayerView(ctx).apply {
                 player = exoPlayer
-                setUseTextureView(true)
             }
         }, modifier = Modifier.fillMaxSize())
     ) {
