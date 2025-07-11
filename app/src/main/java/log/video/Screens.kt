@@ -23,9 +23,9 @@ import coil.compose.AsyncImage
 import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.ui.StyledPlayerView
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.MediaItem
+import androidx.media3.ui.PlayerView
 
 @Composable
 fun FolderList(navController: NavController) {
@@ -137,8 +137,9 @@ fun VideoPlayer(videoUri: String) {
 
     DisposableEffect(
         AndroidView(factory = { ctx ->
-            StyledPlayerView(ctx).apply {
+            androidx.media3.ui.PlayerView(ctx).apply {
                 player = exoPlayer
+                setUseTextureView(true)
             }
         }, modifier = Modifier.fillMaxSize())
     ) {
