@@ -29,6 +29,9 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.currentBackStackEntryAsState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +39,11 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    
+    val isVideoPlayerScreen = currentRoute?.startsWith("video_player") == true
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -61,20 +69,22 @@ fun AppNavigation() {
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text("Video")
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.open()
+                if (!isVideoPlayerScreen) {
+                    TopAppBar(
+                        title = {
+                            Text("Video")
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.open()
+                                }
+                            }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Menu")
                             }
-                        }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu")
                         }
-                    }
-                )
+                    )
+                }
             },
             contentWindowInsets = WindowInsets(0.dp)
         ) {
