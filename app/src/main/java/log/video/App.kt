@@ -1,14 +1,15 @@
 package log.video
 
 import android.app.Application
+import android.content.Context
 import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.VideoFrameDecoder
+import coil.SingletonImageLoader
+import coil3.video.VideoFrameDecoder
 
-class App : Application(), ImageLoaderFactory {
+class App : Application(), SingletonImageLoader.Factory {
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
+    override fun newImageLoader(context: Context): ImageLoader {
+        return ImageLoader.Builder(context)
             .components {
                 add(VideoFrameDecoder.Factory())
             }
