@@ -29,6 +29,8 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,14 +87,40 @@ fun AppNavigation() {
                 startDestination = "folder_list",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("folder_list") {
+                composable(
+                    "folder_list",
+                    enterTransition = {
+                        EnterTransition.None
+                    },
+                    exitTransition = {
+                        ExitTransition.None
+                    },
+                    popEnterTransition = {
+                        EnterTransition.None
+                    },
+                    popExitTransition = {
+                        ExitTransition.None
+                    }
+                ) {
                     FolderList(navController)
                 }
                 composable(
                     route = "video_list?folderId={folderId}",
                     arguments = listOf(navArgument("folderId") {
                         type = NavType.StringType
-                    })
+                    }),
+                    enterTransition = {
+                        EnterTransition.None
+                    },
+                    exitTransition = {
+                        ExitTransition.None
+                    },
+                    popEnterTransition = {
+                        EnterTransition.None
+                    },
+                    popExitTransition = {
+                        ExitTransition.None
+                    }
                 ) {
                     backStackEntry ->
                     val folderId = backStackEntry.arguments?.getString("folderId")!!
@@ -102,7 +130,19 @@ fun AppNavigation() {
                     route = "video_player?videoUri={videoUri}",
                     arguments = listOf(navArgument("videoUri") {
                         type = NavType.StringType
-                    })
+                    }),
+                    enterTransition = {
+                        EnterTransition.None
+                    },
+                    exitTransition = {
+                        ExitTransition.None
+                    },
+                    popEnterTransition = {
+                        EnterTransition.None
+                    },
+                    popExitTransition = {
+                        ExitTransition.None
+                    }
                 ) {
                     backStackEntry ->
                     val videoUri = backStackEntry.arguments?.getString("videoUri")!!
