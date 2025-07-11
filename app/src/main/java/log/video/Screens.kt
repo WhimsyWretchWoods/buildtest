@@ -26,6 +26,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.ui.PlayerView
+import androidx.compose.ui.layout.ContentScale
+import android.util.TypedValue
+import androidx.media3.ui.CaptionStyleCompat
+import android.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
 
 @Composable
 fun FolderList(navController: NavController) {
@@ -45,7 +51,6 @@ fun FolderList(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        // Changed to navigate with folder.id, not folder.path
                         navController.navigate("video_list?folderId=${Uri.encode(folder.id)}")
                     }
                     .padding(vertical = 8.dp),
@@ -68,7 +73,7 @@ fun FolderList(navController: NavController) {
 
 
 @Composable
-fun VideoList(navController: NavController, folderId: String) { // Added navController
+fun VideoList(navController: NavController, folderId: String) {
     val context = LocalContext.current
     val videos = remember(folderId) {
         MediaStoreHelper.getVideosInFolder(context, folderId)
@@ -94,7 +99,8 @@ fun VideoList(navController: NavController, folderId: String) { // Added navCont
                     AsyncImage(
                         model = video.uri,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -114,9 +120,7 @@ fun VideoList(navController: NavController, folderId: String) { // Added navCont
                                 Spacer(modifier = Modifier.size(24.dp))
                             }
                         }
-                        if (resolutionIcon != null) {
-                            resolutionIcon
-                        }
+                        resolutionIcon
                     }
                 }
             }
@@ -127,6 +131,8 @@ fun VideoList(navController: NavController, folderId: String) { // Added navCont
 @Composable
 fun VideoPlayer(videoUri: String) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(Uri.parse(videoUri)))
@@ -141,9 +147,38 @@ fun VideoPlayer(videoUri: String) {
         }
     }
 
-    AndroidView(factory = { ctx ->
-        androidx.media3.ui.PlayerView(ctx).apply {
-            player = exoPlayer
-        }
-    }, modifier = Modifier.fillMaxSize())
+    AndroidView(
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                player = exoPlayer
+                useController = true
+                setShowSubtitleButton(true)
+                setBackgroundColor(Color.BLACK)
+
+                val subtitleView = this.subtitleView
+
+                subtitleView?.apply {
+                    setPadding(16, 16, 16, 16)
+
+                    val textSizeSp = if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        16f
+                    } else {
+                        24f
+                    }
+                    setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp)
+
+                    val customCaptionStyle = CaptionStyleCompat(
+                        Color.WHITE,
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                        CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+                        Color.BLACK,
+                        null
+                    )
+                    setStyle(customCaptionStyle)
+                }
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }
