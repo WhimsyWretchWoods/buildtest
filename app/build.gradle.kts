@@ -10,7 +10,6 @@ android {
 
     signingConfigs {
         create("release") {
-            // --- FIX: Use rootProject.file() to correctly locate the keystore ---
             storeFile = rootProject.file(System.getenv("ORG_GRADLE_PROJECT_storeFile") ?: "app/release-key.jks")
             storePassword = System.getenv("ORG_GRADLE_PROJECT_storePassword")
             keyAlias = System.getenv("ORG_GRADLE_PROJECT_keyAlias")
@@ -24,7 +23,9 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        resConfigs("en")
+        androidResources {
+            localeFilters += listOf("en")
+        }
     }
 
     buildTypes {
