@@ -67,7 +67,7 @@ fun FolderList(navController: NavController) {
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(folder.name)
-                    Text("${folder.videoCount} videos")
+                    Text("${folder.videoCount} ${if (folder.videoCount == 1) "video" else "videos"}")
                 }
             }
         }
