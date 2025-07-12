@@ -139,48 +139,45 @@ fun VideoList(navController: NavController, folderId: String, folderDisplayName:
     }
 }
 @Composable
-fun SettingsView(navController: NavController) { // Added NavController parameter
+fun SettingsView(navController: NavController) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize() // Fill available space
+        modifier = Modifier.fillMaxSize()
     ) {
-        item { // Correct syntax for LazyColumn item
+        item {
             Text(
                 text = "Appearance",
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp) // Add padding for section header
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
             )
             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant, // Changed to surfaceVariant for better contrast
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        // Navigate to your subtitle settings screen
-                        // Make sure "subtitle_settings_route" matches your NavHost setup
-                        
-                    }
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp)
+                .clickable {}
             ) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), // Add padding to the row content
+                    .fillMaxWidth()
+                    .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween // Pushes content to ends
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f) // Makes column take available space
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Text("Subtitle", style = MaterialTheme.typography.titleMedium) // Use typography
-                        Text("Customize your subtitles", style = MaterialTheme.typography.bodyMedium) // Use typography
+                        Text("Subtitle", style = MaterialTheme.typography.titleMedium)
+                        Text("Customize your subtitles", style = MaterialTheme.typography.bodyMedium)
                     }
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, // Correct navigation arrow icon
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Go to Subtitle Settings",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
-        // Add other settings items here as needed
     }
 }
 
