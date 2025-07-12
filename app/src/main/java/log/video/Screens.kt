@@ -41,6 +41,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.LocalView
 import android.app.Activity
 import android.view.View
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 
 @Composable
 fun FolderList(navController: NavController) {
@@ -135,6 +138,52 @@ fun VideoList(navController: NavController, folderId: String, folderDisplayName:
         }
     }
 }
+@Composable
+fun SettingsView(navController: NavController) { // Added NavController parameter
+    LazyColumn(
+        modifier = Modifier.fillMaxSize() // Fill available space
+    ) {
+        item { // Correct syntax for LazyColumn item
+            Text(
+                text = "Appearance",
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp) // Add padding for section header
+            )
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant, // Changed to surfaceVariant for better contrast
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        // Navigate to your subtitle settings screen
+                        // Make sure "subtitle_settings_route" matches your NavHost setup
+                        
+                    }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp), // Add padding to the row content
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween // Pushes content to ends
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f) // Makes column take available space
+                    ) {
+                        Text("Subtitle", style = MaterialTheme.typography.titleMedium) // Use typography
+                        Text("Customize your subtitles", style = MaterialTheme.typography.bodyMedium) // Use typography
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, // Correct navigation arrow icon
+                        contentDescription = "Go to Subtitle Settings",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        // Add other settings items here as needed
+    }
+}
+
 @Composable
 fun VideoPlayer(videoUri: String) {
     val context = LocalContext.current
