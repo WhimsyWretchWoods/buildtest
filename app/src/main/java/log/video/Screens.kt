@@ -40,6 +40,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.LocalView
 import android.app.Activity
+import android.view.View
 
 @Composable
 fun FolderList(navController: NavController) {
@@ -161,8 +162,6 @@ fun VideoPlayer(videoUri: String) {
                 Lifecycle.Event.ON_RESUME -> {
                     exoPlayer.playWhenReady = true
                 }
-                Lifecycle.Event.ON_STOP -> {
-                }
                 else -> {}
             }
         }
@@ -217,6 +216,16 @@ fun VideoPlayer(videoUri: String) {
                     )
                     setStyle(customCaptionStyle)
                 }
+                setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
+                    if (window != null) {
+                        val insetsController = WindowCompat.getInsetsController(window, view)
+                        if (visibility == View.VISIBLE) {
+                            insetsController.show(WindowInsetsCompat.Type.systemBars())
+                        } else {
+                            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+                        }
+                    }
+                })
             }
         },
         modifier = Modifier.fillMaxSize()
