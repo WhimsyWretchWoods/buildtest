@@ -68,6 +68,7 @@ fun AppNavigation() {
                     },
                     selected = false,
                     onClick = {
+                    	navController.navigate("settings_view")
                         scope.launch {
                             drawerState.close()
                         }
@@ -138,6 +139,9 @@ fun AppNavigation() {
                     backStackEntry ->
                     val videoUri = backStackEntry.arguments?.getString("videoUri")!!
                     VideoPlayer(videoUri = videoUri)
+                }
+                composable("settings_view") {
+                	SettingsView(navController = navController)
                 }
             }
         }
