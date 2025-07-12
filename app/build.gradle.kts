@@ -62,7 +62,7 @@ android {
 
 dependencies {
     implementation("androidx.compose.ui:ui:1.9.0-beta02")
-    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("androidx.compose.material3:material3:1.4.0-alpha17")
     implementation("com.google.android.material:material:1.14.0-alpha02")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.navigation:navigation-compose:2.9.0")
