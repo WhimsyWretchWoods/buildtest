@@ -60,7 +60,7 @@ fun FolderList(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        navController.navigate("video_list?folderId=${Uri.encode(folder.id)}")
+                        navController.navigate("video_list?folderId=${Uri.encode(folder.id)}&folderDisplayName=${Uri.encode(folder.name)}")
                     }
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -80,9 +80,8 @@ fun FolderList(navController: NavController) {
     }
 }
 
-
 @Composable
-fun VideoList(navController: NavController, folderId: String) {
+fun VideoList(navController: NavController, folderId: String, folderDisplayName: String) {
     val context = LocalContext.current
     val videos = remember(folderId) {
         MediaStoreHelper.getVideosInFolder(context, folderId)
@@ -136,7 +135,6 @@ fun VideoList(navController: NavController, folderId: String) {
         }
     }
 }
-
 @Composable
 fun VideoPlayer(videoUri: String) {
     val context = LocalContext.current
