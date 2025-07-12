@@ -31,7 +31,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.currentBackStackEntryAsState
-
+import androidx.compose.runtime.remember
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,11 +39,21 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    
+
     val isVideoPlayerScreen = currentRoute?.startsWith("video_player") == true
+
+    val topBarTitle = remember(currentRoute, navBackStackEntry) {
+        when {
+            currentRoute == "folder_list" -> "Folders"
+            currentRoute?.startsWith("video_list") == true -> {
+                navBackStackEntry?.arguments?.getString("folderId")!!
+            }
+            else -> ""
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -72,7 +82,7 @@ fun AppNavigation() {
                 if (!isVideoPlayerScreen) {
                     TopAppBar(
                         title = {
-                            Text("Video")
+                            Text(topBarTitle)
                         },
                         navigationIcon = {
                             IconButton(onClick = {
