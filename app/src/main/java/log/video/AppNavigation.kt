@@ -49,7 +49,7 @@ fun AppNavigation() {
         when {
             currentRoute == "folder_list" -> "Folders"
             currentRoute?.startsWith("video_list") == true -> {
-                navBackStackEntry?.arguments?.getString("folderId")!!
+                navBackStackEntry?.arguments?.getString("folderDisplayName")!!
             }
             else -> ""
         }
@@ -114,14 +114,20 @@ fun AppNavigation() {
                     FolderList(navController)
                 }
                 composable(
-                    route = "video_list?folderId={folderId}",
-                    arguments = listOf(navArgument("folderId") {
-                        type = NavType.StringType
-                    })
+                    route = "video_list?folderId={folderId}&folderDisplayName={folderDisplayName}",
+                    arguments = listOf(
+                        navArgument("folderId") {
+                            type = NavType.StringType
+                        },
+                        navArgument("folderDisplayName") {
+                            type = NavType.StringType
+                        }
+                    )
                 ) {
                     backStackEntry ->
                     val folderId = backStackEntry.arguments?.getString("folderId")!!
-                    VideoList(navController = navController, folderId = folderId)
+                    val folderDisplayName = backStackEntry.arguments?.getString("folderDisplayName")!!
+                    VideoList(navController = navController, folderId = folderId, folderDisplayName = folderDisplayName)
                 }
                 composable(
                     route = "video_player?videoUri={videoUri}",
