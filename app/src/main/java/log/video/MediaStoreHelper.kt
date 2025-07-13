@@ -3,12 +3,11 @@ package log.video
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
-import java.io.File // This import is not strictly needed for the fix, but was in your previous code
+import java.io.File
 
 data class VideoFolder(
     val id: String,
-    val name: String, // Keep as non-null if you want to enforce a name
+    val name: String,
     val videoCount: Int
 )
 
@@ -28,7 +27,8 @@ object MediaStoreHelper {
 
         val projection = arrayOf(
             MediaStore.Video.Media.BUCKET_ID,
-            MediaStore.Video.Media.BUCKET_DISPLAY_NAME
+            MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
+            MediaStore.Video.Media.DATA
         )
 
         context.contentResolver.query(
@@ -37,21 +37,24 @@ object MediaStoreHelper {
             null,
             null,
             null
-        )?.use {
-            cursor ->
+        )?.use { cursor ->
             val bucketIdIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_ID)
             val bucketNameIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+            val dataIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
 
             while (cursor.moveToNext()) {
                 val bucketId = cursor.getString(bucketIdIndex)
-                // Handle potential null for bucketName
-                val bucketName = cursor.getString(bucketNameIndex) ?: "Unknown Folder" // Provide a default name
+                var bucketName = cursor.getString(bucketNameIndex)
+                val dataPath = cursor.getString(dataIndex)
+
+                if (bucketName.isNullOrBlank() || bucketName == "0") {
+                    val file = File(dataPath)
+                    bucketName = file.parentFile?.name ?: "Root Folder"
+                }
 
                 if (bucketId != null) {
                     val currentCount = folderMap[bucketId]?.second ?: 0
                     folderMap[bucketId] = Pair(bucketName, currentCount + 1)
-                } else {
-                    Log.w("MediaStoreHelper", "Found media item with null BUCKET_ID. Skipping.")
                 }
             }
         }
