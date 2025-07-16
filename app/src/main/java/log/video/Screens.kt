@@ -1,55 +1,121 @@
 package log.video
 
+import android.app.Activity
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Typeface
 import android.net.Uri
+import android.text.SpannedString
+import android.util.TypedValue
+import android.view.View
+import androidx.activity.ComponentActivity
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Hd
 import androidx.compose.material.icons.filled.Sd
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import java.util.concurrent.TimeUnit
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.common.MediaItem
-import androidx.media3.ui.PlayerView
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
-import android.util.TypedValue
-import androidx.media3.ui.CaptionStyleCompat
-import android.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import android.content.res.Configuration
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.compose.ui.platform.LocalView
-import android.app.Activity
-import android.view.View
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.media3.common.MediaItem
+import androidx.media3.common.text.Cue
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.CaptionStyleCompat
+import androidx.media3.ui.PlayerView
+import androidx.media3.ui.SubtitleView
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.Color as ComposeColor
+import android.graphics.Color as AndroidColor
+import android.provider.MediaStore
+import androidx.compose.ui.graphics.toArgb
 
 @Composable
 fun FolderList(navController: NavController) {
     val context = LocalContext.current
-    val folders = remember {
-        MediaStoreHelper.getVideoFolders(context)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var folders by remember { mutableStateOf(emptyList<VideoFolder>()) }
+
+    val loadFolders: () -> Unit = remember {
+        {
+            folders = MediaStoreHelper.getVideoFolders(context)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        loadFolders()
+
+        val mediaStoreObserver = MediaStoreContentObserver(context) {
+            loadFolders()
+        }
+
+        context.contentResolver.registerContentObserver(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mediaStoreObserver
+        )
+
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                loadFolders()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        onDispose {
+            context.contentResolver.unregisterContentObserver(mediaStoreObserver)
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+        }
     }
 
     LazyColumn(
@@ -86,8 +152,40 @@ fun FolderList(navController: NavController) {
 @Composable
 fun VideoList(navController: NavController, folderId: String, folderDisplayName: String) {
     val context = LocalContext.current
-    val videos = remember(folderId) {
-        MediaStoreHelper.getVideosInFolder(context, folderId)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var videos by remember { mutableStateOf(emptyList<VideoItem>()) }
+
+    val loadVideos: () -> Unit = remember(folderId) {
+        {
+            videos = MediaStoreHelper.getVideosInFolder(context, folderId)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, folderId) {
+        loadVideos()
+
+        val mediaStoreObserver = MediaStoreContentObserver(context) {
+            loadVideos()
+        }
+
+        context.contentResolver.registerContentObserver(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mediaStoreObserver
+        )
+
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                loadVideos()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        onDispose {
+            context.contentResolver.unregisterContentObserver(mediaStoreObserver)
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+        }
     }
 
     LazyColumn(
@@ -133,48 +231,6 @@ fun VideoList(navController: NavController, folderId: String, folderDisplayName:
                         }
                         resolutionIcon
                     }
-                }
-            }
-        }
-    }
-}
-@Composable
-fun SettingsView(navController: NavController) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item {
-            Text(
-                text = "Appearance",
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-            )
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp)
-                .clickable {}
-            ) {
-                Row(
-                    modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Subtitle", style = MaterialTheme.typography.titleMedium)
-                        Text("Customize your subtitles", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = "Go to Subtitle Settings",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
@@ -236,7 +292,7 @@ fun VideoPlayer(videoUri: String) {
                 player = exoPlayer
                 useController = true
                 setShowSubtitleButton(true)
-                setBackgroundColor(Color.BLACK)
+                setBackgroundColor(AndroidColor.BLACK)
 
                 val subtitleView = this.subtitleView
 
@@ -250,13 +306,25 @@ fun VideoPlayer(videoUri: String) {
                     }
                     setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp)
 
+                    val prefs = context.getSharedPreferences("subtitle_settings", Context.MODE_PRIVATE)
+                    val fgColor = prefs.getInt("subtitle_fg_color", AndroidColor.WHITE)
+                    val bgColor = prefs.getInt("subtitle_bg_color", AndroidColor.TRANSPARENT)
+                    val edgeType = prefs.getInt("subtitle_edge_type", CaptionStyleCompat.EDGE_TYPE_OUTLINE)
+                    val edgeColor = prefs.getInt("subtitle_edge_color", AndroidColor.BLACK)
+                    val fontPath = prefs.getString("subtitle_font_path", null)
+
+                    val typeface = if (fontPath != null) {
+                        try { Typeface.createFromAsset(context.assets, fontPath) }
+                        catch (e: Exception) { Typeface.DEFAULT }
+                    } else { Typeface.DEFAULT }
+
                     val customCaptionStyle = CaptionStyleCompat(
-                        Color.WHITE,
-                        Color.TRANSPARENT,
-                        Color.TRANSPARENT,
-                        CaptionStyleCompat.EDGE_TYPE_OUTLINE,
-                        Color.BLACK,
-                        null
+                        fgColor,
+                        bgColor,
+                        AndroidColor.TRANSPARENT,
+                        edgeType,
+                        edgeColor,
+                        typeface
                     )
                     setStyle(customCaptionStyle)
                 }
@@ -274,4 +342,193 @@ fun VideoPlayer(videoUri: String) {
         },
         modifier = Modifier.fillMaxSize()
     )
+}
+
+@Composable
+fun SettingsView(navController: NavController) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item {
+            Text(
+                text = "Appearance",
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+            )
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp)
+                    .clickable {
+                        navController.navigate("subtitle_settings")
+                    }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Subtitle", style = MaterialTheme.typography.titleMedium)
+                        Text("Customize your subtitles", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Go to Subtitle Settings",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubtitleStyleSettingsView() {
+    val context = LocalContext.current
+
+    var currentForegroundColor by remember { mutableStateOf(ComposeColor.White) }
+    var currentBackgroundColor by remember { mutableStateOf(ComposeColor.Black) }
+    var currentEdgeType by remember { mutableStateOf(CaptionStyleCompat.EDGE_TYPE_OUTLINE) }
+    var currentEdgeColor by remember { mutableStateOf(ComposeColor.Black) }
+    var currentFontPath by remember { mutableStateOf<String?>(null) }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "gradientTransition")
+    val xOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "xOffsetAnimation"
+    )
+
+    val gradientColors = listOf(
+        ComposeColor(0xFF303030),
+        ComposeColor(0xFF424242),
+        ComposeColor(0xFF303030)
+    )
+    val gradientBrush = remember(xOffset) {
+        Brush.horizontalGradient(
+            colors = gradientColors,
+            startX = 0f + (xOffset * 800),
+            endX = 400f + (xOffset * 800)
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(gradientBrush)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { ctx ->
+                    SubtitleView(ctx).apply {
+                        setPadding(16, 16, 16, 16)
+                        setBottomPaddingFraction(0.1f)
+                        setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+                        setApplyEmbeddedFontSizes(false)
+                    }
+                },
+                update = { subtitleView ->
+                    val currentStyle = CaptionStyleCompat(
+                        currentForegroundColor.toArgb(),
+                        currentBackgroundColor.toArgb(),
+                        AndroidColor.TRANSPARENT,
+                        currentEdgeType,
+                        currentEdgeColor.toArgb(),
+                        if (currentFontPath != null) {
+                            try { Typeface.createFromAsset(context.assets, currentFontPath!!) }
+                            catch (e: Exception) { Typeface.DEFAULT }
+                        } else { Typeface.DEFAULT }
+                    )
+
+                    subtitleView.setStyle(currentStyle)
+
+                    val previewCue = Cue.Builder()
+                        .setText(SpannedString("This is your custom subtitle style in action."))
+                        .setTextSize(20f, TypedValue.COMPLEX_UNIT_SP)
+                        .build()
+                    subtitleView.setCues(listOf(previewCue))
+                }
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text("Customize Subtitle Style:")
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                currentForegroundColor = when (currentForegroundColor) {
+                    ComposeColor.White -> ComposeColor.Yellow
+                    ComposeColor.Yellow -> ComposeColor.Cyan
+                    else -> ComposeColor.White
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Change Text Color")
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                currentEdgeType = when (currentEdgeType) {
+                    CaptionStyleCompat.EDGE_TYPE_NONE -> CaptionStyleCompat.EDGE_TYPE_OUTLINE
+                    CaptionStyleCompat.EDGE_TYPE_OUTLINE -> CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
+                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW -> CaptionStyleCompat.EDGE_TYPE_RAISED
+                    CaptionStyleCompat.EDGE_TYPE_RAISED -> CaptionStyleCompat.EDGE_TYPE_DEPRESSED
+                    else -> CaptionStyleCompat.EDGE_TYPE_NONE
+                }
+                currentEdgeColor = when (currentEdgeType) {
+                    CaptionStyleCompat.EDGE_TYPE_OUTLINE -> ComposeColor.Red
+                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW -> ComposeColor.Blue
+                    CaptionStyleCompat.EDGE_TYPE_RAISED -> ComposeColor.Green
+                    CaptionStyleCompat.EDGE_TYPE_DEPRESSED -> ComposeColor.Magenta
+                    else -> ComposeColor.Black
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Change Edge Style/Color")
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Spacer(Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                val prefs = context.getSharedPreferences("subtitle_settings", Context.MODE_PRIVATE)
+                prefs.edit()
+                    .putInt("subtitle_fg_color", currentForegroundColor.toArgb())
+                    .putInt("subtitle_bg_color", currentBackgroundColor.toArgb())
+                    .putInt("subtitle_edge_type", currentEdgeType)
+                    .putInt("subtitle_edge_color", currentEdgeColor.toArgb())
+                    .apply()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Save Style Settings")
+        }
+    }
 }
