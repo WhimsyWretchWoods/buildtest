@@ -5,21 +5,6 @@ import android.net.Uri
 import android.provider.MediaStore
 import java.io.File
 
-data class VideoFolder(
-    val id: String,
-    val name: String,
-    val videoCount: Int
-)
-
-data class VideoItem(
-    val uri: Uri,
-    val name: String,
-    val duration: Long,
-    val width: Int,
-    val height: Int,
-    val path: String
-)
-
 object MediaStoreHelper {
 
     fun getVideoFolders(context: Context): List<VideoFolder> {
