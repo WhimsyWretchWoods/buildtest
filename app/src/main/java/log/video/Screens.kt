@@ -78,6 +78,7 @@ import androidx.compose.ui.graphics.Color as ComposeColor
 import android.graphics.Color as AndroidColor
 import android.provider.MediaStore
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.foundation.border
 
 @Composable
 fun FolderList(navController: NavController) {
@@ -356,13 +357,13 @@ fun SettingsView(navController: NavController) {
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
             )
             Surface(
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = MaterialTheme.colorScheme.surfaceContainer, // Changed to surfaceContainer
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp)
                     .clickable {
-                        navController.navigate("subtitle_settings")
+                        navController.navigate("subtitle_settings_route")
                     }
             ) {
                 Row(
@@ -391,37 +392,23 @@ fun SettingsView(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubtitleStyleSettingsView() {
+fun SubtitleStyleSettingsScreen() {
     val context = LocalContext.current
 
-    var currentForegroundColor by remember { mutableStateOf(ComposeColor.White) }
-    var currentBackgroundColor by remember { mutableStateOf(ComposeColor.Black) }
-    var currentEdgeType by remember { mutableStateOf(CaptionStyleCompat.EDGE_TYPE_OUTLINE) }
-    var currentEdgeColor by remember { mutableStateOf(ComposeColor.Black) }
-    var currentFontPath by remember { mutableStateOf<String?>(null) }
+    val prefs = remember { context.getSharedPreferences("subtitle_settings", Context.MODE_PRIVATE) }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "gradientTransition")
-    val xOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = "xOffsetAnimation"
-    )
-
-    val gradientColors = listOf(
-        ComposeColor(0xFF303030),
-        ComposeColor(0xFF424242),
-        ComposeColor(0xFF303030)
-    )
-    val gradientBrush = remember(xOffset) {
-        Brush.horizontalGradient(
-            colors = gradientColors,
-            startX = 0f + (xOffset * 800),
-            endX = 400f + (xOffset * 800)
-        )
+    var currentForegroundColor by remember {
+        mutableStateOf(ComposeColor(prefs.getInt("subtitle_fg_color", AndroidColor.WHITE)))
     }
+    var currentBackgroundColor by remember {
+        mutableStateOf(ComposeColor(prefs.getInt("subtitle_bg_color", AndroidColor.BLACK)))
+    }
+    var currentEdgeType by remember { mutableStateOf(prefs.getInt("subtitle_edge_type", CaptionStyleCompat.EDGE_TYPE_OUTLINE)) }
+    var currentEdgeColor by remember { mutableStateOf(ComposeColor(prefs.getInt("subtitle_edge_color", AndroidColor.BLACK))) }
+    var currentFontPath by remember { mutableStateOf<String?>(prefs.getString("subtitle_font_path", null)) }
+
+    var showForegroundColorDialog by remember { mutableStateOf(false) }
+    var showBackgroundColorDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -433,7 +420,7 @@ fun SubtitleStyleSettingsView() {
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
-                .background(gradientBrush)
+                .background(ComposeColor.Black)
                 .align(Alignment.CenterHorizontally)
         ) {
             AndroidView(
@@ -472,53 +459,74 @@ fun SubtitleStyleSettingsView() {
 
         Spacer(Modifier.height(24.dp))
 
-        Text("Customize Subtitle Style:")
-        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Subtitle Colors",
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
-        Button(
-            onClick = {
-                currentForegroundColor = when (currentForegroundColor) {
-                    ComposeColor.White -> ComposeColor.Yellow
-                    ComposeColor.Yellow -> ComposeColor.Cyan
-                    else -> ComposeColor.White
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer, // Changed to surfaceContainer
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .clickable { showForegroundColorDialog = true }
         ) {
-            Text("Change Text Color")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Text Color", style = MaterialTheme.typography.titleMedium)
+                    Text("Change the subtitle text color", style = MaterialTheme.typography.bodyMedium)
+                }
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(currentForegroundColor)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(8.dp))
+                )
+            }
         }
 
-        Spacer(Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                currentEdgeType = when (currentEdgeType) {
-                    CaptionStyleCompat.EDGE_TYPE_NONE -> CaptionStyleCompat.EDGE_TYPE_OUTLINE
-                    CaptionStyleCompat.EDGE_TYPE_OUTLINE -> CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW
-                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW -> CaptionStyleCompat.EDGE_TYPE_RAISED
-                    CaptionStyleCompat.EDGE_TYPE_RAISED -> CaptionStyleCompat.EDGE_TYPE_DEPRESSED
-                    else -> CaptionStyleCompat.EDGE_TYPE_NONE
-                }
-                currentEdgeColor = when (currentEdgeType) {
-                    CaptionStyleCompat.EDGE_TYPE_OUTLINE -> ComposeColor.Red
-                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW -> ComposeColor.Blue
-                    CaptionStyleCompat.EDGE_TYPE_RAISED -> ComposeColor.Green
-                    CaptionStyleCompat.EDGE_TYPE_DEPRESSED -> ComposeColor.Magenta
-                    else -> ComposeColor.Black
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer, // Changed to surfaceContainer
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .clickable { showBackgroundColorDialog = true }
         ) {
-            Text("Change Edge Style/Color")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Background Color", style = MaterialTheme.typography.titleMedium)
+                    Text("Change the subtitle background color", style = MaterialTheme.typography.bodyMedium)
+                }
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(currentBackgroundColor)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(8.dp))
+                )
+            }
         }
-
-        Spacer(Modifier.height(16.dp))
 
         Spacer(Modifier.height(24.dp))
 
         Button(
             onClick = {
-                val prefs = context.getSharedPreferences("subtitle_settings", Context.MODE_PRIVATE)
                 prefs.edit()
                     .putInt("subtitle_fg_color", currentForegroundColor.toArgb())
                     .putInt("subtitle_bg_color", currentBackgroundColor.toArgb())
@@ -530,5 +538,27 @@ fun SubtitleStyleSettingsView() {
         ) {
             Text("Save Style Settings")
         }
+    }
+
+    if (showForegroundColorDialog) {
+        ColorPickerDialog(
+            title = "Select Text Color",
+            initialColor = currentForegroundColor,
+            onColorSelected = { color ->
+                currentForegroundColor = color
+            },
+            onDismissRequest = { showForegroundColorDialog = false }
+        )
+    }
+
+    if (showBackgroundColorDialog) {
+        ColorPickerDialog(
+            title = "Select Background Color",
+            initialColor = currentBackgroundColor,
+            onColorSelected = { color ->
+                currentBackgroundColor = color
+            },
+            onDismissRequest = { showBackgroundColorDialog = false }
+        )
     }
 }
