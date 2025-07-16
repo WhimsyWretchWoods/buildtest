@@ -363,7 +363,7 @@ fun SettingsView(navController: NavController) {
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp)
                     .clickable {
-                        navController.navigate("subtitle_settings_route")
+                        navController.navigate("subtitle_settings")
                     }
             ) {
                 Row(
