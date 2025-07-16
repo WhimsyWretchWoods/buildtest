@@ -144,7 +144,7 @@ fun AppNavigation() {
                 	SettingsView(navController = navController)
                 }
                 composable("subtitle_settings") {
-                	SubtitleStyleSettingsView()
+                	SubtitleStyleSettingsScreen()
                 }
             }
         }
