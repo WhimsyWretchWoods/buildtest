@@ -65,6 +65,7 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.4.0-alpha17")
     implementation("com.google.android.material:material:1.14.0-alpha02")
     implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-video:2.7.0")
