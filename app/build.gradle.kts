@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "log.video"
+    namespace = "com.raku"
     compileSdk = 35
 
     signingConfigs {
@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "log.video"
+        applicationId = "com.raku"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
