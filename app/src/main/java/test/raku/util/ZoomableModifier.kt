@@ -72,46 +72,45 @@ fun Modifier.zoomAndPan(
             translationY = animatedOffset.value.y
         }
         .pointerInput(Unit) {
-            // Use awaitPointerEventScope to detect when the gesture is truly over.
-            // detectTransformGestures processes events *within* a gesture.
-            // We need to react when the entire pointerInput block completes (fingers lifted).
+            // This 'while(true)' loop makes sure the gesture detection is always active.
+            // detectTransformGestures is a suspending function, so it will suspend
+            // until a gesture is detected and processed. Once the gesture ends,
+            // it resumes, and the code after it in the loop gets executed.
             while (true) {
-                val event = awaitPointerEventScope {
-                    detectTransformGestures { centroid, pan, zoom, _ ->
-                        val currentScale = scale
-                        val currentOffset = offset
+                detectTransformGestures { centroid, pan, zoom, _ ->
+                    val currentScale = scale
+                    val currentOffset = offset
 
-                        val effectiveZoom = 1f + (zoom - 1f) * zoomSensitivity
+                    val effectiveZoom = 1f + (zoom - 1f) * zoomSensitivity
 
-                        var newScaleTarget = (currentScale * effectiveZoom).coerceIn(minScale, zoomLimit)
+                    var newScaleTarget = (currentScale * effectiveZoom).coerceIn(minScale, zoomLimit)
 
-                        val shouldSnapToMinScale = snapToMinScaleThreshold > 0f && abs(newScaleTarget - minScale) <= snapToMinScaleThreshold
+                    val shouldSnapToMinScale = snapToMinScaleThreshold > 0f && abs(newScaleTarget - minScale) <= snapToMinScaleThreshold
 
-                        if (shouldSnapToMinScale) {
-                            newScaleTarget = minScale
-                        }
-
-                        val zoomCompensationX = (centroid.x - (containerSize.width / 2f + currentOffset.x)) * (1 - newScaleTarget / currentScale)
-                        val zoomCompensationY = (centroid.y - (containerSize.height / 2f + currentOffset.y)) * (1 - newScaleTarget / currentScale)
-
-                        var newOffsetXTarget = currentOffset.x + pan.x * panSensitivity * currentScale + zoomCompensationX
-                        var newOffsetYTarget = currentOffset.y + pan.y * panSensitivity * currentScale + zoomCompensationY
-
-                        val scaledContentWidth = containerSize.width * newScaleTarget
-                        val scaledContentHeight = containerSize.height * newScaleTarget
-
-                        val maxPanX = max(0f, (scaledContentWidth - containerSize.width) / 2f)
-                        val maxPanY = max(0f, (scaledContentHeight - containerSize.height) / 2f)
-
-                        newOffsetXTarget = newOffsetXTarget.coerceIn(-maxPanX, maxPanX)
-                        newOffsetYTarget = newOffsetYTarget.coerceIn(-maxPanY, maxPanY)
-
-                        scale = newScaleTarget
-                        offset = Offset(newOffsetXTarget, newOffsetYTarget)
+                    if (shouldSnapToMinScale) {
+                        newScaleTarget = minScale
                     }
+
+                    val zoomCompensationX = (centroid.x - (containerSize.width / 2f + currentOffset.x)) * (1 - newScaleTarget / currentScale)
+                    val zoomCompensationY = (centroid.y - (containerSize.height / 2f + currentOffset.y)) * (1 - newScaleTarget / currentScale)
+
+                    var newOffsetXTarget = currentOffset.x + pan.x * panSensitivity * currentScale + zoomCompensationX
+                    var newOffsetYTarget = currentOffset.y + pan.y * panSensitivity * currentScale + zoomCompensationY
+
+                    val scaledContentWidth = containerSize.width * newScaleTarget
+                    val scaledContentHeight = containerSize.height * newScaleTarget
+
+                    val maxPanX = max(0f, (scaledContentWidth - containerSize.width) / 2f)
+                    val maxPanY = max(0f, (scaledContentHeight - containerSize.height) / 2f)
+
+                    newOffsetXTarget = newOffsetXTarget.coerceIn(-maxPanX, maxPanX)
+                    newOffsetYTarget = newOffsetYTarget.coerceIn(-maxPanY, maxPanY)
+
+                    scale = newScaleTarget
+                    offset = Offset(newOffsetXTarget, newOffsetYTarget)
                 }
-                // This block is executed *after* detectTransformGestures completes,
-                // meaning the gesture has ended (all pointers released).
+                // This code block runs *after* detectTransformGestures completes,
+                // which signifies the end of the gesture (fingers lifted).
                 scope.launch {
                     val shouldSnapToMinScale = snapToMinScaleThreshold > 0f && abs(scale - minScale) <= snapToMinScaleThreshold
 
