@@ -81,7 +81,7 @@ fun Modifier.zoomAndPan(
                     }
                     // Crucially, return early here if we are snapping to minScale
                     // This prevents subsequent pan/zoom calculations from interfering.
-                    // return@detectTransformGestures
+                    return@detectTransformGestures
                 }
 
                 // Normal zoom and pan logic when not at minScale
