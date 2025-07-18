@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.raku"
+    namespace = "test.raku"
     compileSdk = 35
 
     signingConfigs {
@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.raku"
+        applicationId = "test.raku"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
