@@ -18,9 +18,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-// Import the Zoomable composable
-import com.engawapg.lib.zoomable.rememberZoomState
-import com.engawapg.lib.zoomable.zoomable
+import test.raku.util.zoomAndPan // <--- Import your new custom modifier
 
 @Composable
 fun Player(uri: Uri, navController: NavController) {
@@ -34,36 +32,33 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    DisposableEffect(exoPlayer) {
+    // Add DisposableEffect to release the player when the composable leaves the composition
+    DisposableEffect(Unit) {
         onDispose {
-            exoPlayer.release() // Release the player
+            exoPlayer.release()
         }
     }
-
-    // Initialize the ZoomState for the Zoomable modifier
-    val zoomState = rememberZoomState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            // Apply the zoomable modifier here
-            .zoomable(zoomState) // This handles all the touch input, scaling, and panning
+            .zoomAndPan() // <--- Use your custom modifier here!
     ) {
         AndroidView(
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     player = exoPlayer
-                    useController = false // No built-in ExoPlayer controls
+                    useController = false
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT // Video itself fits within the AndroidView
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 }
             },
             modifier = Modifier.fillMaxSize()
-            // NO graphicsLayer needed here, Zoomable handles transformations
+            // The graphicsLayer and pointerInput are now inside zoomAndPan()
         )
     }
 }
