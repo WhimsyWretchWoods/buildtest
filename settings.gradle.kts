@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Video"
+rootProject.name = "Raku"
 include(":app")
