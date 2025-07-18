@@ -2,11 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <application
-        android:name=".App"
         android:allowBackup="true"
-        android:label="Video"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:label="Raku"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         <activity
             android:name=".MainActivity"
             android:exported="true">
