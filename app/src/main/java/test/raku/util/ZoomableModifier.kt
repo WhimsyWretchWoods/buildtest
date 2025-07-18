@@ -33,7 +33,7 @@ fun Modifier.zoomAndPan(
     minScale: Float = 1f,
     zoomSensitivity: Float = 6f,
     panSensitivity: Float = 6f,
-    snapToMinScaleThreshold: Float = 0.01f // New configurable threshold
+    snapToMinScaleThreshold: Float = 0f // New configurable threshold
 ): Modifier = composed {
     val animatedScale = remember { Animatable(minScale) }
     val animatedOffset = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
