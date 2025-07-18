@@ -11,13 +11,14 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.runtime.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancel // Explicit import for coroutineScope.cancel
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -96,37 +97,38 @@ fun Modifier.zoomAndPan(
 
                     val isGestureActive = changes.any { it.pressed }
 
+                    // Immediately cancel fling if a new gesture starts
                     if (isGestureActive && flingJob?.isActive == true) {
                         flingJob?.cancel()
                         flingJob = null
                         scope.launch { velocityState.snapTo(Offset.Zero) }
                     }
 
-                    if (event.type == androidx.compose.ui.input.pointer.PointerEventType.Release ||
-                        event.type == androidx.compose.ui.input.pointer.PointerEventType.Cancel
-                    ) {
+                    if (event.type == PointerEventType.Release || event.type == PointerEventType.Cancel) { // Use PointerEventType directly
+                        // Gesture End - Handle Fling
                         flingJob = scope.launch {
                             if (animatedScale.value > minScale) {
                                 val velocity = velocityState.value
                                 if (velocity.getDistance() > 10f) {
                                     val flingAnimation = Animatable(animatedOffset.value, Offset.VectorConverter)
-                                    val targetOffset = animatedOffset.value + velocity * 1000f * 0.1f // A far target based on velocity
+                                    // Calculate a target that's "far enough" for the fling physics to play out
+                                    val targetOffset = animatedOffset.value + velocity * 1000f * 0.1f
 
                                     flingAnimation.animateTo(
                                         targetValue = calculateClampedOffset(targetOffset, animatedScale.value, containerSize),
                                         animationSpec = spring(
                                             dampingRatio = Spring.DampingRatioLowBouncy,
                                             stiffness = Spring.StiffnessLow,
-                                            visibilityThreshold = Offset.VectorConverter.convertFromVector(Offset(1f, 1f))
+                                            visibilityThreshold = Offset.VectorConverter.convertFromVector(Offset(1f, 1f)) // Correct conversion
                                         ),
-                                        initialVelocity = velocity // Provide initial velocity for more realistic fling
+                                        initialVelocity = velocity
                                     ) {
-                                        // This block runs within the animation's scope
+                                        // This block runs within the animation's scope (which is a CoroutineScope)
                                         val coercedValue = calculateClampedOffset(value, animatedScale.value, containerSize)
                                         if (value != coercedValue) {
-                                            this.cancel() // Cancel the current animation if boundary hit
+                                            this.cancel() // This 'cancel' refers to the AnimationScope.cancel(), which is correct
                                         }
-                                        animatedOffset.snapTo(coercedValue) // This is within an animation's suspend scope
+                                        animatedOffset.snapTo(coercedValue) // This is a suspend function called correctly here
                                     }
                                 }
                             }
@@ -134,42 +136,45 @@ fun Modifier.zoomAndPan(
                         }
                         lastPointerChange = null
                     } else if (isGestureActive) {
-                        // Use detectTransformGestures for consolidated pan/zoom
-                        // It's a restricted suspending function and handles its own lifecycle within awaitPointerEventScope
-                        detectTransformGestures(
-                            onGesture = { centroid, pan, zoom, changes -> // The changes here are relevant to the transform
-                                val currentScale = animatedScale.value
-                                val currentOffset = animatedOffset.value
+                        // Using detectTransformGestures to process pan/zoom from the ongoing event
+                        // This will process all active pointers and provide aggregated pan/zoom
+                        // Note: The `changes` parameter passed to detectTransformGestures will be for that specific transform event,
+                        // not necessarily all raw pointer changes from awaitPointerEvent.
+                        detectTransformGestures { centroid, pan, zoom, transformChanges -> // Renamed `changes` to `transformChanges` for clarity
+                            val currentScale = animatedScale.value
+                            val currentOffset = animatedOffset.value
 
-                                val effectiveZoom = 1f + (zoom - 1f) * zoomSensitivity
+                            val effectiveZoom = 1f + (zoom - 1f) * zoomSensitivity
 
-                                var newScaleTarget = (currentScale * effectiveZoom).coerceIn(minScale, zoomLimit)
+                            var newScaleTarget = (currentScale * effectiveZoom).coerceIn(minScale, zoomLimit)
 
-                                val shouldSnapToMinScale = abs(newScaleTarget - minScale) <= 0.05f || newScaleTarget < minScale
+                            val shouldSnapToMinScale = abs(newScaleTarget - minScale) <= 0.05f || newScaleTarget < minScale
 
-                                if (shouldSnapToMinScale) {
-                                    newScaleTarget = minScale
-                                    scope.launch { // Launch this in the component's scope
-                                        animatedScale.animateTo(minScale, animationSpec = springConfig)
-                                        animatedOffset.animateTo(Offset.Zero, animationSpec = offsetSpringConfig)
-                                    }
-                                    return@detectTransformGestures // Exit the current transform gesture processing
+                            if (shouldSnapToMinScale) {
+                                newScaleTarget = minScale
+                                scope.launch { // Launching on component's scope
+                                    animatedScale.animateTo(minScale, animationSpec = springConfig)
+                                    animatedOffset.animateTo(Offset.Zero, animationSpec = offsetSpringConfig)
                                 }
+                                return@detectTransformGestures // Exit the detectTransformGestures lambda
+                            }
 
-                                val scaledPan = pan * currentScale * panSensitivity
+                            val scaledPan = pan * currentScale * panSensitivity
 
-                                val newOffsetX = currentOffset.x + scaledPan.x + (centroid.x - currentOffset.x - size.width / 2f) * (effectiveZoom - 1f)
-                                val newOffsetY = currentOffset.y + scaledPan.y + (centroid.y - currentOffset.y - size.height / 2f) * (effectiveZoom - 1f)
+                            val newOffsetX = currentOffset.x + scaledPan.x + (centroid.x - currentOffset.x - size.width / 2f) * (effectiveZoom - 1f)
+                            val newOffsetY = currentOffset.y + scaledPan.y + (centroid.y - currentOffset.y - size.height / 2f) * (effectiveZoom - 1f)
 
-                                val clampedOffset = calculateClampedOffset(Offset(newOffsetX, newOffsetY), newScaleTarget, containerSize)
+                            val clampedOffset = calculateClampedOffset(Offset(newOffsetX, newOffsetY), newScaleTarget, containerSize)
 
-                                scope.launch { // Launch this in the component's scope
-                                    animatedScale.animateTo(newScaleTarget, animationSpec = springConfig)
-                                    animatedOffset.animateTo(clampedOffset, animationSpec = offsetSpringConfig)
-                                }
+                            scope.launch { // Launching on component's scope
+                                animatedScale.animateTo(newScaleTarget, animationSpec = springConfig)
+                                animatedOffset.animateTo(clampedOffset, animationSpec = offsetSpringConfig)
+                            }
 
-                                // Update velocity for fling, using the changes from this specific transform
-                                val firstChange = changes.first() // Get the first pointer change from the current transform event
+                            // Update velocity for fling, using the changes from this specific transform
+                            // Ensure 'transformChanges' is not empty before accessing 'first()'
+                            if (transformChanges.isNotEmpty()) { // ADDED CHECK HERE
+                                val firstChange = transformChanges.first()
                                 if (lastPointerChange != null && firstChange.id == lastPointerChange!!.id) {
                                     val timeDelta = (firstChange.uptimeMillis - lastPointerChange!!.uptimeMillis).toFloat() / 1000f // seconds
                                     if (timeDelta > 0) {
@@ -182,7 +187,7 @@ fun Modifier.zoomAndPan(
                                 }
                                 lastPointerChange = firstChange
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -190,7 +195,7 @@ fun Modifier.zoomAndPan(
         .pointerInput(Unit) { // Separate pointerInput for double tap
             detectTapGestures(
                 onDoubleTap = { tapOffset ->
-                    flingJob?.cancel() // Cancel any ongoing fling on double tap
+                    flingJob?.cancel()
                     flingJob = null
                     scope.launch {
                         velocityState.snapTo(Offset.Zero)
