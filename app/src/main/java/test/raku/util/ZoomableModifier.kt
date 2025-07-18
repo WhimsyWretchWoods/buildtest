@@ -19,25 +19,19 @@ import kotlin.math.max
 
 /**
  * A custom modifier that enables pinch-to-zoom and pan gestures on the Composable it's applied to.
- * The content will directly follow the gesture and then animate smoothly to its final scale and position using spring physics when the gesture ends.
+ * The content will animate smoothly to its new scale and position using spring physics.
  *
  * @param zoomLimit The maximum scale factor allowed for zooming. Defaults to 5f (5 times original size).
  * @param minScale The minimum scale factor allowed. Defaults to 1f (original size).
  * @param zoomSensitivity Multiplier for the zoom gesture. Increase to make pinch-to-zoom faster.
  * @param panSensitivity Multiplier for the pan gesture. Increase to make panning faster, especially when zoomed in.
- * @param snapToMinScaleThreshold If the zoom level is within this threshold of minScale, it will snap to minScale and center.
- * Set to 0f to disable snapping to minScale. Defaults to 0.05f.
  */
 fun Modifier.zoomAndPan(
     zoomLimit: Float = 5f,
     minScale: Float = 1f,
     zoomSensitivity: Float = 6f,
-    panSensitivity: Float = 6f,
-    snapToMinScaleThreshold: Float = 0.05f
+    panSensitivity: Float = 6f
 ): Modifier = composed {
-    var scale by remember { mutableFloatStateOf(minScale) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-
     val animatedScale = remember { Animatable(minScale) }
     val animatedOffset = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
 
@@ -54,13 +48,6 @@ fun Modifier.zoomAndPan(
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(scale) {
-        animatedScale.snapTo(scale)
-    }
-    LaunchedEffect(offset) {
-        animatedOffset.snapTo(offset)
-    }
-
     this
         .onSizeChanged { size ->
             containerSize = size
@@ -72,57 +59,52 @@ fun Modifier.zoomAndPan(
             translationY = animatedOffset.value.y
         }
         .pointerInput(Unit) {
-            // This 'while(true)' loop makes sure the gesture detection is always active.
-            // detectTransformGestures is a suspending function, so it will suspend
-            // until a gesture is detected and processed. Once the gesture ends,
-            // it resumes, and the code after it in the loop gets executed.
-            while (true) {
-                detectTransformGestures { centroid, pan, zoom, _ ->
-                    val currentScale = scale
-                    val currentOffset = offset
+            detectTransformGestures { centroid, pan, zoom, _ ->
+                val currentScale = animatedScale.value
+                val currentOffsetX = animatedOffset.value.x
+                val currentOffsetY = animatedOffset.value.y
 
-                    val effectiveZoom = 1f + (zoom - 1f) * zoomSensitivity
+                val effectiveZoom = 1f + (zoom - 1f) * zoomSensitivity
 
-                    var newScaleTarget = (currentScale * effectiveZoom).coerceIn(minScale, zoomLimit)
+                // Calculate potential new scale
+                var newScaleTarget = (currentScale * effectiveZoom).coerceIn(minScale, zoomLimit)
 
-                    val shouldSnapToMinScale = snapToMinScaleThreshold > 0f && abs(newScaleTarget - minScale) <= snapToMinScaleThreshold
+                // If zooming out to near minScale, ensure it snaps precisely to minScale
+                val shouldSnapToMinScale = abs(newScaleTarget - minScale) <= 0.05f || newScaleTarget < minScale
 
-                    if (shouldSnapToMinScale) {
-                        newScaleTarget = minScale
-                    }
-
-                    val zoomCompensationX = (centroid.x - (containerSize.width / 2f + currentOffset.x)) * (1 - newScaleTarget / currentScale)
-                    val zoomCompensationY = (centroid.y - (containerSize.height / 2f + currentOffset.y)) * (1 - newScaleTarget / currentScale)
-
-                    var newOffsetXTarget = currentOffset.x + pan.x * panSensitivity * currentScale + zoomCompensationX
-                    var newOffsetYTarget = currentOffset.y + pan.y * panSensitivity * currentScale + zoomCompensationY
-
-                    val scaledContentWidth = containerSize.width * newScaleTarget
-                    val scaledContentHeight = containerSize.height * newScaleTarget
-
-                    val maxPanX = max(0f, (scaledContentWidth - containerSize.width) / 2f)
-                    val maxPanY = max(0f, (scaledContentHeight - containerSize.height) / 2f)
-
-                    newOffsetXTarget = newOffsetXTarget.coerceIn(-maxPanX, maxPanX)
-                    newOffsetYTarget = newOffsetYTarget.coerceIn(-maxPanY, maxPanY)
-
-                    scale = newScaleTarget
-                    offset = Offset(newOffsetXTarget, newOffsetYTarget)
-                }
-                // This code block runs *after* detectTransformGestures completes,
-                // which signifies the end of the gesture (fingers lifted).
-                scope.launch {
-                    val shouldSnapToMinScale = snapToMinScaleThreshold > 0f && abs(scale - minScale) <= snapToMinScaleThreshold
-
-                    if (shouldSnapToMinScale) {
+                if (shouldSnapToMinScale) {
+                    newScaleTarget = minScale
+                    // When snapping to minScale, immediately set offset target to center
+                    scope.launch {
                         animatedScale.animateTo(minScale, animationSpec = springConfig)
                         animatedOffset.animateTo(Offset.Zero, animationSpec = offsetSpringConfig)
-                        scale = minScale
-                        offset = Offset.Zero
-                    } else {
-                        animatedScale.animateTo(scale, animationSpec = springConfig)
-                        animatedOffset.animateTo(offset, animationSpec = offsetSpringConfig)
                     }
+                    // Crucially, return early here if we are snapping to minScale
+                    // This prevents subsequent pan/zoom calculations from interfering.
+                    return@detectTransformGestures
+                }
+
+                // Normal zoom and pan logic when not at minScale
+                val focalPointX = (centroid.x - size.width / 2f) / currentScale - currentOffsetX
+                val focalPointY = (centroid.y - size.height / 2f) / currentScale - currentOffsetY
+
+                val effectivePan = pan * panSensitivity
+
+                var newOffsetXTarget = currentOffsetX + effectivePan.x * currentScale + (focalPointX * (currentScale * effectiveZoom - currentScale))
+                var newOffsetYTarget = currentOffsetY + effectivePan.y * currentScale + (focalPointY * (currentScale * effectiveZoom - currentScale))
+
+                val scaledContentWidth = containerSize.width * newScaleTarget
+                val scaledContentHeight = containerSize.height * newScaleTarget
+
+                val maxPanX = max(0f, (scaledContentWidth - containerSize.width) / 2f)
+                val maxPanY = max(0f, (scaledContentHeight - containerSize.height) / 2f)
+
+                newOffsetXTarget = newOffsetXTarget.coerceIn(-maxPanX, maxPanX)
+                newOffsetYTarget = newOffsetYTarget.coerceIn(-maxPanY, maxPanY)
+
+                scope.launch {
+                    animatedScale.animateTo(newScaleTarget, animationSpec = springConfig)
+                    animatedOffset.animateTo(Offset(newOffsetXTarget, newOffsetYTarget), animationSpec = offsetSpringConfig)
                 }
             }
         }
