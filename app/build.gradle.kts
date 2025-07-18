@@ -68,5 +68,4 @@ dependencies {
     implementation("io.coil-kt:coil-video:2.7.0")
     implementation("androidx.media3:media3-exoplayer:1.7.1")
     implementation("androidx.media3:media3-ui:1.7.1")
-    implementation("net.engawapg.lib:zoomable:2.8.1")
 }
