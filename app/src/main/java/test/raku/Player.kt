@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -27,12 +28,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.navigation.NavController
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
 import androidx.media3.common.Player
 import androidx.lifecycle.Lifecycle
@@ -42,7 +41,7 @@ import androidx.lifecycle.LifecycleOwner
 import test.raku.util.zoomAndPan
 
 @Composable
-fun Player(uri: Uri, navController: NavController) {
+fun Player(uri: Uri) {
     val context = LocalContext.current
     val view = LocalView.current
     val lifecycleOwner: LifecycleOwner = remember(LocalView.current) {
@@ -66,9 +65,7 @@ fun Player(uri: Uri, navController: NavController) {
     }
 
     var controlsVisible by remember { mutableStateOf(true) }
-    var isAutoRepeatEnabled by remember { mutableStateOf(false) } // State for auto-repeat
 
-    // Keep screen on while this composable is active
     DisposableEffect(view) {
         view.keepScreenOn = true
         onDispose {
@@ -76,7 +73,6 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    // System bar management (initial state and on dispose)
     DisposableEffect(insetsController) {
         insetsController.show(WindowInsetsCompat.Type.systemBars())
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -86,15 +82,8 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    // ExoPlayer lifecycle management and auto-repeat logic
-    DisposableEffect(exoPlayer, lifecycleOwner, isAutoRepeatEnabled) {
+    DisposableEffect(exoPlayer, lifecycleOwner) {
         val listener = object : Player.Listener {
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_ENDED && isAutoRepeatEnabled) {
-                    exoPlayer.seekTo(0)
-                    exoPlayer.play()
-                }
-            }
         }
         exoPlayer.addListener(listener)
 
@@ -106,7 +95,7 @@ fun Player(uri: Uri, navController: NavController) {
                 Lifecycle.Event.ON_RESUME -> {
                     exoPlayer.play()
                 }
-                else -> { /* Do nothing */ }
+                else -> { }
             }
         }
         lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
