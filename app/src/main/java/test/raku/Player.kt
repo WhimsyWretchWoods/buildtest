@@ -138,22 +138,7 @@ fun Player(uri: Uri, navController: NavController) {
                 .padding(bottom = 16.dp)
         ) {
             PlayerControls(
-                exoPlayer = exoPlayer,
-                isAutoRepeatEnabled = isAutoRepeatEnabled, // Pass auto-repeat state
-                onPlayPauseClick = {
-                    if (exoPlayer.isPlaying) {
-                        exoPlayer.pause()
-                    } else {
-                        exoPlayer.play()
-                    }
-                },
-                onStartOverClick = {
-                    exoPlayer.seekTo(0)
-                    exoPlayer.play()
-                },
-                onToggleAutoRepeat = {
-                    isAutoRepeatEnabled = !isAutoRepeatEnabled // Toggle auto-repeat
-                }
+                exoPlayer = myExoPlayer
             )
         }
     }
