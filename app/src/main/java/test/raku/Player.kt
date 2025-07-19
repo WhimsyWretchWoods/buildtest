@@ -32,8 +32,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.compose.ui.unit.dp // Ensure this is imported for .padding()
-import androidx.compose.foundation.layout.padding // Ensure this is imported for .padding()
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.padding
+import androidx.media3.common.Player
+
 import test.raku.util.zoomAndPan
 
 @Composable
@@ -57,7 +59,9 @@ fun Player(uri: Uri, navController: NavController) {
     }
 
     var controlsVisible by remember { mutableStateOf(true) }
+    var isAutoRepeatEnabled by remember { mutableStateOf(false) } // State for auto-repeat
 
+    // Keep screen on while this composable is active
     DisposableEffect(view) {
         view.keepScreenOn = true
         onDispose {
@@ -65,6 +69,7 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
+    // System bar management (initial state and on dispose)
     DisposableEffect(insetsController) {
         insetsController.show(WindowInsetsCompat.Type.systemBars())
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -74,8 +79,19 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    DisposableEffect(exoPlayer) {
+    // ExoPlayer lifecycle management and auto-repeat logic
+    DisposableEffect(exoPlayer, isAutoRepeatEnabled) {
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED && isAutoRepeatEnabled) {
+                    exoPlayer.seekTo(0)
+                    exoPlayer.play()
+                }
+            }
+        }
+        exoPlayer.addListener(listener)
         onDispose {
+            exoPlayer.removeListener(listener)
             exoPlayer.release()
         }
     }
@@ -123,6 +139,7 @@ fun Player(uri: Uri, navController: NavController) {
         ) {
             PlayerControls(
                 exoPlayer = exoPlayer,
+                isAutoRepeatEnabled = isAutoRepeatEnabled, // Pass auto-repeat state
                 onPlayPauseClick = {
                     if (exoPlayer.isPlaying) {
                         exoPlayer.pause()
@@ -134,8 +151,9 @@ fun Player(uri: Uri, navController: NavController) {
                     exoPlayer.seekTo(0)
                     exoPlayer.play()
                 },
-                onSubtitleClick = { /* Handled internally */ },
-                onAudioClick = { /* Handled internally */ }
+                onToggleAutoRepeat = {
+                    isAutoRepeatEnabled = !isAutoRepeatEnabled // Toggle auto-repeat
+                }
             )
         }
     }
