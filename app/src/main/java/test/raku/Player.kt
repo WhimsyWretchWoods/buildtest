@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,7 +19,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import test.raku.util.zoomAndPan // <--- Import your new custom modifier
+import test.raku.util.zoomAndPan
 
 @Composable
 fun Player(uri: Uri, navController: NavController) {
@@ -32,33 +33,58 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    // Add DisposableEffect to release the player when the composable leaves the composition
-    DisposableEffect(Unit) {
+    DisposableEffect(exoPlayer) {
         onDispose {
             exoPlayer.release()
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .zoomAndPan() // <--- Use your custom modifier here!
     ) {
-        AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    player = exoPlayer
-                    useController = false
-                    layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize()
+                .zoomAndPan()
+        ) {
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        player = exoPlayer
+                        useController = false
+                        layoutParams = FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        PlayerControls(
+            exoPlayer = exoPlayer,
+            onPlayPauseClick = {
+                if (exoPlayer.isPlaying) {
+                    exoPlayer.pause()
+                } else {
+                    exoPlayer.play()
                 }
             },
-            modifier = Modifier.fillMaxSize()
-            // The graphicsLayer and pointerInput are now inside zoomAndPan()
+            onStartOverClick = {
+                exoPlayer.seekTo(0)
+                exoPlayer.play()
+            },
+            onSubtitleClick = {
+                println("Subtitle button clicked")
+            },
+            onAudioClick = {
+                println("Audio button clicked")
+            }
         )
     }
 }
