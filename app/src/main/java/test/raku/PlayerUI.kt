@@ -2,6 +2,7 @@ package test.raku
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -33,59 +35,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionOverride
-import androidx.media3.exoplayer.ExoPlayer
-import kotlinx.coroutines.delay
-import androidx.compose.foundation.layout.Box
-import androidx.media3.common.Tracks
 import androidx.media3.common.TrackGroup
-import androidx.compose.material.MaterialTheme
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
+import androidx.media3.exoplayer.ExoPlayer
+import java.util.Locale
+import kotlinx.coroutines.delay
 
 @Composable
 fun PlayerControls(
     modifier: Modifier = Modifier,
-    exoPlayer: ExoPlayer,
-    isAutoRepeatEnabled: Boolean,
-    onPlayPauseClick: () -> Unit,
-    onStartOverClick: () -> Unit,
-    onToggleAutoRepeat: () -> Unit
+    exoPlayer: ExoPlayer
 ) {
-    var isPlaying by remember(exoPlayer) {
-        mutableStateOf(exoPlayer.playWhenReady && exoPlayer.playbackState == Player.STATE_READY)
-    }
-
-    var currentPosition by remember { mutableStateOf(0L) }
-    var duration by remember { mutableStateOf(0L) }
+    // Internal state management for a more robust component
+    var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
+    var isAutoRepeatEnabled by remember { mutableStateOf(exoPlayer.repeatMode != Player.REPEAT_MODE_OFF) }
+    var currentPosition by remember { mutableStateOf(exoPlayer.currentPosition) }
+    var duration by remember { mutableStateOf(exoPlayer.duration) }
     var isSeeking by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf(0f) }
-
     var showSubtitleMenu by remember { mutableStateOf(false) }
-    var showAudioMenu by remember { mutableStateOf(false) }
-
+    var showAudioMenu by remember { mutableState of(false) }
     var selectedSubtitleTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
     var selectedAudioTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
 
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
+                // Correctly find the currently selected audio and subtitle tracks
                 var newSelectedSubtitle: Pair<TrackGroup, Int>? = null
                 var newSelectedAudio: Pair<TrackGroup, Int>? = null
-
-                // Iterate through the track groups to find the selected ones
                 for (trackGroup in tracks.groups) {
-                    if (!trackGroup.isSelected) continue
-
-                    when (trackGroup.type) {
-                        C.TRACK_TYPE_TEXT -> {
-                            for (i in 0 until trackGroup.length) {
+                    if (trackGroup.isSelected) {
+                        when (trackGroup.type) {
+                            C.TRACK_TYPE_TEXT -> for (i in 0 until trackGroup.length) {
                                 if (trackGroup.isTrackSelected(i)) {
                                     newSelectedSubtitle = Pair(trackGroup.mediaTrackGroup, i)
                                     break
                                 }
                             }
-                        }
-                        C.TRACK_TYPE_AUDIO -> {
-                            for (i in 0 until trackGroup.length) {
+                            C.TRACK_TYPE_AUDIO -> for (i in 0 until trackGroup.length) {
                                 if (trackGroup.isTrackSelected(i)) {
                                     newSelectedAudio = Pair(trackGroup.mediaTrackGroup, i)
                                     break
@@ -98,32 +87,25 @@ fun PlayerControls(
                 selectedAudioTrack = newSelectedAudio
             }
 
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                isPlaying = playWhenReady && exoPlayer.playbackState == Player.STATE_READY
+            override fun onIsPlayingChanged(isPlayingChange: Boolean) {
+                isPlaying = isPlayingChange
             }
 
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                isPlaying = exoPlayer.playWhenReady && playbackState == Player.STATE_READY
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                isAutoRepeatEnabled = repeatMode != Player.REPEAT_MODE_OFF
             }
         }
         exoPlayer.addListener(listener)
-
-        // Manually trigger the listener once to initialize the state correctly
+        // Initialize state on composition
         listener.onTracksChanged(exoPlayer.currentTracks)
-
-        onDispose {
-            exoPlayer.removeListener(listener)
-        }
+        onDispose { exoPlayer.removeListener(listener) }
     }
 
-
-    LaunchedEffect(exoPlayer) {
-        while (true) {
-            if (!isSeeking) {
-                currentPosition = exoPlayer.currentPosition
-                duration = exoPlayer.duration.coerceAtLeast(0L)
-                sliderPosition = currentPosition.toFloat()
-            }
+    LaunchedEffect(isPlaying, isSeeking) {
+        while (isPlaying && !isSeeking) {
+            currentPosition = exoPlayer.currentPosition
+            duration = exoPlayer.duration.coerceAtLeast(0L)
+            sliderPosition = currentPosition.toFloat()
             delay(1000)
         }
     }
@@ -154,7 +136,7 @@ fun PlayerControls(
                 isSeeking = false
                 exoPlayer.seekTo(sliderPosition.toLong())
             },
-            valueRange = 0f..duration.toFloat(),
+            valueRange = 0f..duration.toFloat().coerceAtLeast(0f),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -163,11 +145,15 @@ fun PlayerControls(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onStartOverClick) {
+            // Replay button logic is now internal
+            IconButton(onClick = { exoPlayer.seekTo(0) }) {
                 Icon(Icons.Filled.Replay, contentDescription = "Start Over", tint = Color.White)
             }
 
-            IconButton(onClick = onToggleAutoRepeat) {
+            // Auto-repeat logic is now internal
+            IconButton(onClick = {
+                exoPlayer.repeatMode = if (isAutoRepeatEnabled) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ONE
+            }) {
                 Icon(
                     Icons.Filled.Repeat,
                     contentDescription = "Auto Repeat",
@@ -175,7 +161,8 @@ fun PlayerControls(
                 )
             }
 
-            IconButton(onClick = onPlayPauseClick) {
+            // Play/Pause logic is now internal
+            IconButton(onClick = { if (isPlaying) exoPlayer.pause() else exoPlayer.play() }) {
                 Icon(
                     if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = if (isPlaying) "Pause" else "Play",
@@ -183,23 +170,17 @@ fun PlayerControls(
                 )
             }
 
+            // Subtitle Menu
             Box {
                 IconButton(onClick = { showSubtitleMenu = !showSubtitleMenu }) {
                     Icon(Icons.Filled.Subtitles, contentDescription = "Subtitles", tint = Color.White)
                 }
-                DropdownMenu(
-                    expanded = showSubtitleMenu,
-                    onDismissRequest = { showSubtitleMenu = false }
-                ) {
-                    val textTrackGroups = exoPlayer.currentTracks.groups.filter {
-                        it.type == C.TRACK_TYPE_TEXT
-                    }
-
+                DropdownMenu(expanded = showSubtitleMenu, onDismissRequest = { showSubtitleMenu = false }) {
+                    // "Off" button that actually works
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
-                            .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
                             .build()
-                        selectedSubtitleTrack = null
                         showSubtitleMenu = false
                     }) {
                         Text("Off")
@@ -207,86 +188,82 @@ fun PlayerControls(
                             Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
                         }
                     }
-
-                    textTrackGroups.forEach { tracksGroup: Tracks.Group ->
-                        for (trackIndex in 0 until tracksGroup.length) {
-                            val format = tracksGroup.getTrackFormat(trackIndex)
-                            val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
-                            val isCurrentTrackSelected = selectedSubtitleTrack?.let {
-                                it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex
-                            } ?: false
-
-                            DropdownMenuItem(onClick = {
-                                exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
-                                    .setOverrideForType(
-                                        TrackSelectionOverride(tracksGroup.mediaTrackGroup, listOf(trackIndex))
-                                    )
-                                    .build()
-                                // The onTracksChanged listener will update the state
-                                showSubtitleMenu = false
-                            }) {
-                                Text(trackName)
-                                if (isCurrentTrackSelected) {
-                                    Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                    exoPlayer.currentTracks.groups
+                        .filter { it.type == C.TRACK_TYPE_TEXT }
+                        .forEach { tracksGroup ->
+                            for (trackIndex in 0 until tracksGroup.length) {
+                                val format = tracksGroup.getTrackFormat(trackIndex)
+                                // Get human-readable track names
+                                val trackName = if (!format.label.isNullOrBlank()) {
+                                    format.label
+                                } else if (!format.language.isNullOrBlank() && format.language != "und") {
+                                    Locale.forLanguageTag(format.language!!).displayName
+                                } else {
+                                    "Track ${trackIndex + 1}"
+                                }
+                                val isSelected = selectedSubtitleTrack?.let { it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex } ?: false
+                                DropdownMenuItem(onClick = {
+                                    exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                                        .setOverrideForType(TrackSelectionOverride(tracksGroup.mediaTrackGroup, trackIndex))
+                                        .build()
+                                    showSubtitleMenu = false
+                                }) {
+                                    Text(trackName)
+                                    if (isSelected) {
+                                        Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                                    }
                                 }
                             }
                         }
-                    }
                 }
             }
 
+            // Audio Menu
             Box {
                 IconButton(onClick = { showAudioMenu = !showAudioMenu }) {
                     Icon(Icons.Filled.Audiotrack, contentDescription = "Audio Tracks", tint = Color.White)
                 }
-                DropdownMenu(
-                    expanded = showAudioMenu,
-                    onDismissRequest = { showAudioMenu = false }
-                ) {
-                    val audioTrackGroups = exoPlayer.currentTracks.groups.filter {
-                        it.type == C.TRACK_TYPE_AUDIO
-                    }
-
-                    // Note: You might want a "default" or "auto" option here as well.
-                    // For now, only providing an "Off" option for consistency.
-                    DropdownMenuItem(onClick = {
+                DropdownMenu(expanded = showAudioMenu, onDismissRequest = { showAudioMenu = false }) {
+                    // Audio "Off" button (disables audio)
+                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
-                            .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
                             .build()
-                        selectedAudioTrack = null
                         showAudioMenu = false
                     }) {
-                        Text("Off") // Or "Default"
-                        // This check might not be robust enough for all cases, but follows the original logic
+                        Text("Off")
                         if (selectedAudioTrack == null) {
                             Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
                         }
                     }
-
-                    audioTrackGroups.forEach { tracksGroup: Tracks.Group ->
-                        for (trackIndex in 0 until tracksGroup.length) {
-                            val format = tracksGroup.getTrackFormat(trackIndex)
-                            val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
-                            val isCurrentTrackSelected = selectedAudioTrack?.let {
-                                it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex
-                            } ?: false
-
-                            DropdownMenuItem(onClick = {
-                                exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
-                                    .setOverrideForType(
-                                        TrackSelectionOverride(tracksGroup.mediaTrackGroup, listOf(trackIndex))
-                                    )
-                                    .build()
-                                // The onTracksChanged listener will update the state
-                                showAudioMenu = false
-                            }) {
-                                Text(trackName)
-                                if (isCurrentTrackSelected) {
-                                    Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                    exoPlayer.currentTracks.groups
+                        .filter { it.type == C.TRACK_TYPE_AUDIO }
+                        .forEach { tracksGroup ->
+                            for (trackIndex in 0 until tracksGroup.length) {
+                                val format = tracksGroup.getTrackFormat(trackIndex)
+                                val trackName = if (!format.label.isNullOrBlank()) {
+                                    format.label
+                                } else if (!format.language.isNullOrBlank() && format.language != "und") {
+                                    Locale.forLanguageTag(format.language!!).displayName
+                                } else {
+                                    "Track ${trackIndex + 1}"
+                                }
+                                val isSelected = selectedAudioTrack?.let { it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex } ?: false
+                                DropdownMenuItem(onClick = {
+                                    exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                                        .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                                        .setOverrideForType(TrackSelectionOverride(tracksGroup.mediaTrackGroup, trackIndex))
+                                        .build()
+                                    showAudioMenu = false
+                                }) {
+                                    Text(trackName)
+                                    if (isSelected) {
+                                        Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                                    }
                                 }
                             }
                         }
-                    }
                 }
             }
         }
@@ -294,11 +271,11 @@ fun PlayerControls(
 }
 
 private fun formatTime(milliseconds: Long): String {
+    if (milliseconds < 0) return "00:00"
     val totalSeconds = milliseconds / 1000
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-
     return if (hours > 0) {
         String.format("%02d:%02d:%02d", hours, minutes, seconds)
     } else {
