@@ -138,7 +138,7 @@ fun Player(uri: Uri, navController: NavController) {
                 .padding(bottom = 16.dp)
         ) {
             PlayerControls(
-                exoPlayer = myExoPlayer
+                exoPlayer = exoPlayer
             )
         }
     }
