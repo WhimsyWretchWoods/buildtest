@@ -45,10 +45,10 @@ import androidx.compose.material.MaterialTheme // Import for MaterialTheme.color
 fun PlayerControls(
     modifier: Modifier = Modifier,
     exoPlayer: ExoPlayer,
-    isAutoRepeatEnabled: Boolean, // Receive auto-repeat state
+    isAutoRepeatEnabled: Boolean,
     onPlayPauseClick: () -> Unit,
     onStartOverClick: () -> Unit,
-    onToggleAutoRepeat: () -> Unit // Callback for auto-repeat button
+    onToggleAutoRepeat: () -> Unit
 ) {
     var isPlaying by remember(exoPlayer) {
         mutableStateOf(exoPlayer.playWhenReady && exoPlayer.playbackState == Player.STATE_READY)
@@ -63,6 +63,7 @@ fun PlayerControls(
     var showAudioMenu by remember { mutableStateOf(false) }
 
     // State to track currently selected subtitle and audio tracks for the checkmark
+    // Explicitly define the type for clarity
     var selectedSubtitleTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
     var selectedAudioTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
 
@@ -79,13 +80,17 @@ fun PlayerControls(
             override fun onTracksChanged(tracks: Tracks) {
                 // Update selected track states when tracks change or selection parameters change
                 selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
-                    if (override.trackIndices.isNotEmpty()) {
-                        Pair(override.trackGroup, override.trackIndices[0])
+                    // Explicitly cast to TrackSelectionOverride to resolve 'trackGroup' reference
+                    val typedOverride = override as TrackSelectionOverride
+                    if (typedOverride.trackIndices.isNotEmpty()) {
+                        Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
                     } else null
                 }
                 selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
-                    if (override.trackIndices.isNotEmpty()) {
-                        Pair(override.trackGroup, override.trackIndices[0])
+                    // Explicitly cast to TrackSelectionOverride to resolve 'trackGroup' reference
+                    val typedOverride = override as TrackSelectionOverride
+                    if (typedOverride.trackIndices.isNotEmpty()) {
+                        Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
                     } else null
                 }
             }
@@ -93,13 +98,15 @@ fun PlayerControls(
         exoPlayer.addListener(listener)
         // Initialize selected tracks on first composition
         selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
-            if (override.trackIndices.isNotEmpty()) {
-                Pair(override.trackGroup, override.trackIndices[0])
+            val typedOverride = override as TrackSelectionOverride
+            if (typedOverride.trackIndices.isNotEmpty()) {
+                Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
             } else null
         }
         selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
-            if (override.trackIndices.isNotEmpty()) {
-                Pair(override.trackGroup, override.trackIndices[0])
+            val typedOverride = override as TrackSelectionOverride
+            if (typedOverride.trackIndices.isNotEmpty()) {
+                Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
             } else null
         }
 
@@ -158,7 +165,6 @@ fun PlayerControls(
                 Icon(Icons.Filled.Replay, contentDescription = "Start Over", tint = Color.White)
             }
 
-            // Auto-repeat button
             IconButton(onClick = onToggleAutoRepeat) {
                 Icon(
                     Icons.Filled.Repeat,
@@ -187,12 +193,11 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_TEXT
                     }
 
-                    // "Off" option for subtitles
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_TEXT)
                             .build()
-                        selectedSubtitleTrack = null // Clear selection
+                        selectedSubtitleTrack = null
                         showSubtitleMenu = false
                     }) {
                         Text("Off")
@@ -215,7 +220,7 @@ fun PlayerControls(
                                         TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
-                                selectedSubtitleTrack = Pair(tracksGroup.trackGroup, trackIndex) // Update selection
+                                selectedSubtitleTrack = Pair(tracksGroup.trackGroup, trackIndex)
                                 showSubtitleMenu = false
                             }) {
                                 Text(trackName)
@@ -240,12 +245,11 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_AUDIO
                     }
 
-                    // "Off" option for audio
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
                             .build()
-                        selectedAudioTrack = null // Clear selection
+                        selectedAudioTrack = null
                         showAudioMenu = false
                     }) {
                         Text("Off")
@@ -268,7 +272,7 @@ fun PlayerControls(
                                         TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
-                                selectedAudioTrack = Pair(tracksGroup.trackGroup, trackIndex) // Update selection
+                                selectedAudioTrack = Pair(tracksGroup.trackGroup, trackIndex)
                                 showAudioMenu = false
                             }) {
                                 Text(trackName)
