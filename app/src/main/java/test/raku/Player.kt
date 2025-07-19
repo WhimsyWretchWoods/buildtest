@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import test.raku.util.zoomAndPan
+import androidx.compose.ui.Alignment // Import for Alignment
 
 @Composable
 fun Player(uri: Uri, navController: NavController) {
@@ -39,34 +40,34 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    Column(
+    Box( // Changed from Column to Box to layer elements
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        Box(
+        // Video surface, now directly inside the main Box.
+        // It still gets the zoomAndPan modifier.
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    player = exoPlayer
+                    useController = false
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                }
+            },
             modifier = Modifier
-                .weight(1f)
                 .fillMaxSize()
-                .zoomAndPan()
-        ) {
-            AndroidView(
-                factory = { ctx ->
-                    PlayerView(ctx).apply {
-                        player = exoPlayer
-                        useController = false
-                        layoutParams = FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+                .zoomAndPan() // zoomAndPan applies to the AndroidView itself
+        )
 
+        // Player controls, layered on top of the video.
+        // Aligned to the bottom center of the Box.
         PlayerControls(
+            modifier = Modifier.align(Alignment.BottomCenter), // Align to bottom center
             exoPlayer = exoPlayer,
             onPlayPauseClick = {
                 if (exoPlayer.isPlaying) {
