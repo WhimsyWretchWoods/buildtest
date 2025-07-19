@@ -32,6 +32,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.compose.ui.unit.dp
 import test.raku.util.zoomAndPan
 
 @Composable
@@ -54,22 +55,27 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    // Controls and system bars start visible.
     var controlsVisible by remember { mutableStateOf(true) }
 
-    // Set initial system bar behavior and ensure they are visible.
+    // Keep screen on while this composable is active
+    DisposableEffect(view) {
+        view.keepScreenOn = true
+        onDispose {
+            view.keepScreenOn = false
+        }
+    }
+
+    // System bar management (initial state and on dispose)
     DisposableEffect(insetsController) {
-        // Ensure system bars are visible initially
         insetsController.show(WindowInsetsCompat.Type.systemBars())
-        // Set behavior to allow bars to be transiently shown by system gestures (like swiping from edge).
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         onDispose {
-            // When composable leaves composition, ensure system bars are shown again.
             insetsController.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
+    // ExoPlayer lifecycle management
     DisposableEffect(exoPlayer) {
         onDispose {
             exoPlayer.release()
@@ -82,10 +88,8 @@ fun Player(uri: Uri, navController: NavController) {
             .background(Color.Black)
             .pointerInput(Unit) {
                 detectTapGestures {
-                    // Toggle controls visibility
                     controlsVisible = !controlsVisible
 
-                    // Toggle system bars visibility based on controlsVisible state
                     if (controlsVisible) {
                         insetsController.show(WindowInsetsCompat.Type.systemBars())
                     } else {
@@ -115,8 +119,11 @@ fun Player(uri: Uri, navController: NavController) {
             visible = controlsVisible,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
         ) {
+            // Pass the exoPlayer instance to PlayerControls for track selection
             PlayerControls(
                 exoPlayer = exoPlayer,
                 onPlayPauseClick = {
@@ -125,20 +132,14 @@ fun Player(uri: Uri, navController: NavController) {
                     } else {
                         exoPlayer.play()
                     }
-                    // No need to set controlsVisible = true here, as tap handles it.
-                    // If controls were hidden, a tap would show them and trigger this.
-                    // If controls were visible, a tap on the button doesn't hide them.
                 },
                 onStartOverClick = {
                     exoPlayer.seekTo(0)
                     exoPlayer.play()
                 },
-                onSubtitleClick = {
-                    println("Subtitle button clicked")
-                },
-                onAudioClick = {
-                    println("Audio button clicked")
-                }
+                // These callbacks are now handled internally by PlayerControls
+                onSubtitleClick = { /* Handled internally */ },
+                onAudioClick = { /* Handled internally */ }
             )
         }
     }
