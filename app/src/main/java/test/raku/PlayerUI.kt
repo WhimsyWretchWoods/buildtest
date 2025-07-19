@@ -34,7 +34,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
-import androidx.compose.foundation.layout.Box // Added import for Box
+import androidx.compose.foundation.layout.Box
 import androidx.media3.common.Tracks // Added import for Tracks.Group
 
 @Composable
@@ -139,12 +139,10 @@ fun PlayerControls(
                     expanded = showSubtitleMenu,
                     onDismissRequest = { showSubtitleMenu = false }
                 ) {
-                    // Filter for text tracks from the currentTracks.groups
                     val textTrackGroups = exoPlayer.currentTracks.groups.filter {
                         it.type == C.TRACK_TYPE_TEXT
                     }
 
-                    // "Disable" option for subtitles
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_TEXT)
@@ -154,15 +152,13 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    // List available subtitle tracks
-                    textTrackGroups.forEach { trackGroup: Tracks.Group -> // Explicitly cast to Tracks.Group
+                    textTrackGroups.forEach { trackGroup: Tracks.Group ->
                         for (trackIndex in 0 until trackGroup.length) {
-                            // Use getTrackFormat on Tracks.Group to get the Format
                             val format = trackGroup.getTrackFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Pass the actual TrackGroup from the Tracks.Group and a list with the track index
+                                        // Corrected: Use trackGroup directly, not trackGroup.trackGroup
                                         TrackSelectionOverride(trackGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
@@ -183,12 +179,10 @@ fun PlayerControls(
                     expanded = showAudioMenu,
                     onDismissRequest = { showAudioMenu = false }
                 ) {
-                    // Filter for audio tracks from the currentTracks.groups
                     val audioTrackGroups = exoPlayer.currentTracks.groups.filter {
                         it.type == C.TRACK_TYPE_AUDIO
                     }
 
-                    // "Disable" option for audio
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
@@ -198,15 +192,13 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    // List available audio tracks
-                    audioTrackGroups.forEach { trackGroup: Tracks.Group -> // Explicitly cast to Tracks.Group
+                    audioTrackGroups.forEach { trackGroup: Tracks.Group ->
                         for (trackIndex in 0 until trackGroup.length) {
-                            // Use getTrackFormat on Tracks.Group to get the Format
                             val format = trackGroup.getTrackFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Pass the actual TrackGroup from the Tracks.Group and a list with the track index
+                                        // Corrected: Use trackGroup directly, not trackGroup.trackGroup
                                         TrackSelectionOverride(trackGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
