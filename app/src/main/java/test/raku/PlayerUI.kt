@@ -67,17 +67,14 @@ fun PlayerControls(
 
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
-            // Corrected: Use 'override fun' for onTracksChanged
             override fun onTracksChanged(tracks: Tracks) {
-                // Update selected track states when tracks change or selection parameters change
-                selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
-                    // No explicit cast needed, 'override' is already TrackSelectionOverride
+                // Explicitly declare 'override' as TrackSelectionOverride
+                selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override: TrackSelectionOverride ->
                     if (override.trackIndices.isNotEmpty()) {
                         Pair(override.trackGroup, override.trackIndices[0])
                     } else null
                 }
-                selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
-                    // No explicit cast needed, 'override' is already TrackSelectionOverride
+                selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override: TrackSelectionOverride ->
                     if (override.trackIndices.isNotEmpty()) {
                         Pair(override.trackGroup, override.trackIndices[0])
                     } else null
@@ -94,12 +91,12 @@ fun PlayerControls(
         }
         exoPlayer.addListener(listener)
         // Initialize selected tracks on first composition
-        selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
+        selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override: TrackSelectionOverride ->
             if (override.trackIndices.isNotEmpty()) {
                 Pair(override.trackGroup, override.trackIndices[0])
             } else null
         }
-        selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
+        selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override: TrackSelectionOverride ->
             if (override.trackIndices.isNotEmpty()) {
                 Pair(override.trackGroup, override.trackIndices[0])
             } else null
