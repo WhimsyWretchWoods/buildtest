@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
 						) { backStackEntry ->
 							val uriStr = backStackEntry.arguments?.getString("uri")
 							val uri = Uri.parse(uriStr)
-							Player(uri = uri, navController = navController)
+							Player(uri = uri)
 						}
 					}
 				}
