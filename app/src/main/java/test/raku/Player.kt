@@ -32,7 +32,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp // Ensure this is imported for .padding()
+import androidx.compose.foundation.layout.padding // Ensure this is imported for .padding()
 import test.raku.util.zoomAndPan
 
 @Composable
@@ -57,7 +58,6 @@ fun Player(uri: Uri, navController: NavController) {
 
     var controlsVisible by remember { mutableStateOf(true) }
 
-    // Keep screen on while this composable is active
     DisposableEffect(view) {
         view.keepScreenOn = true
         onDispose {
@@ -65,7 +65,6 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    // System bar management (initial state and on dispose)
     DisposableEffect(insetsController) {
         insetsController.show(WindowInsetsCompat.Type.systemBars())
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -75,7 +74,6 @@ fun Player(uri: Uri, navController: NavController) {
         }
     }
 
-    // ExoPlayer lifecycle management
     DisposableEffect(exoPlayer) {
         onDispose {
             exoPlayer.release()
@@ -123,7 +121,6 @@ fun Player(uri: Uri, navController: NavController) {
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp)
         ) {
-            // Pass the exoPlayer instance to PlayerControls for track selection
             PlayerControls(
                 exoPlayer = exoPlayer,
                 onPlayPauseClick = {
@@ -137,7 +134,6 @@ fun Player(uri: Uri, navController: NavController) {
                     exoPlayer.seekTo(0)
                     exoPlayer.play()
                 },
-                // These callbacks are now handled internally by PlayerControls
                 onSubtitleClick = { /* Handled internally */ },
                 onAudioClick = { /* Handled internally */ }
             )
