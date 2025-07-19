@@ -47,7 +47,6 @@ fun PlayerControls(
     modifier: Modifier = Modifier,
     exoPlayer: ExoPlayer
 ) {
-    // Internal state management for a more robust component
     var isPlaying by remember { mutableStateOf(exoPlayer.isPlaying) }
     var isAutoRepeatEnabled by remember { mutableStateOf(exoPlayer.repeatMode != Player.REPEAT_MODE_OFF) }
     var currentPosition by remember { mutableStateOf(exoPlayer.currentPosition) }
@@ -55,14 +54,13 @@ fun PlayerControls(
     var isSeeking by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf(0f) }
     var showSubtitleMenu by remember { mutableStateOf(false) }
-    var showAudioMenu by remember { mutableState of(false) }
+    var showAudioMenu by remember { mutableStateOf(false) } // Fixed typo: mutableStateOf
     var selectedSubtitleTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
     var selectedAudioTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
 
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
-                // Correctly find the currently selected audio and subtitle tracks
                 var newSelectedSubtitle: Pair<TrackGroup, Int>? = null
                 var newSelectedAudio: Pair<TrackGroup, Int>? = null
                 for (trackGroup in tracks.groups) {
@@ -96,7 +94,6 @@ fun PlayerControls(
             }
         }
         exoPlayer.addListener(listener)
-        // Initialize state on composition
         listener.onTracksChanged(exoPlayer.currentTracks)
         onDispose { exoPlayer.removeListener(listener) }
     }
@@ -145,12 +142,10 @@ fun PlayerControls(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Replay button logic is now internal
             IconButton(onClick = { exoPlayer.seekTo(0) }) {
                 Icon(Icons.Filled.Replay, contentDescription = "Start Over", tint = Color.White)
             }
 
-            // Auto-repeat logic is now internal
             IconButton(onClick = {
                 exoPlayer.repeatMode = if (isAutoRepeatEnabled) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ONE
             }) {
@@ -161,7 +156,6 @@ fun PlayerControls(
                 )
             }
 
-            // Play/Pause logic is now internal
             IconButton(onClick = { if (isPlaying) exoPlayer.pause() else exoPlayer.play() }) {
                 Icon(
                     if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -170,13 +164,11 @@ fun PlayerControls(
                 )
             }
 
-            // Subtitle Menu
             Box {
                 IconButton(onClick = { showSubtitleMenu = !showSubtitleMenu }) {
                     Icon(Icons.Filled.Subtitles, contentDescription = "Subtitles", tint = Color.White)
                 }
                 DropdownMenu(expanded = showSubtitleMenu, onDismissRequest = { showSubtitleMenu = false }) {
-                    // "Off" button that actually works
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
@@ -193,13 +185,12 @@ fun PlayerControls(
                         .forEach { tracksGroup ->
                             for (trackIndex in 0 until tracksGroup.length) {
                                 val format = tracksGroup.getTrackFormat(trackIndex)
-                                // Get human-readable track names
-                                val trackName = if (!format.label.isNullOrBlank()) {
-                                    format.label
-                                } else if (!format.language.isNullOrBlank() && format.language != "und") {
-                                    Locale.forLanguageTag(format.language!!).displayName
-                                } else {
-                                    "Track ${trackIndex + 1}"
+                                // Fixed: Ensure trackName is a non-nullable String
+                                val trackName: String = when {
+                                    !format.label.isNullOrBlank() -> format.label!!
+                                    !format.language.isNullOrBlank() && format.language != "und" ->
+                                        Locale.forLanguageTag(format.language!!).displayName
+                                    else -> "Track ${trackIndex + 1}"
                                 }
                                 val isSelected = selectedSubtitleTrack?.let { it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex } ?: false
                                 DropdownMenuItem(onClick = {
@@ -219,14 +210,12 @@ fun PlayerControls(
                 }
             }
 
-            // Audio Menu
             Box {
                 IconButton(onClick = { showAudioMenu = !showAudioMenu }) {
                     Icon(Icons.Filled.Audiotrack, contentDescription = "Audio Tracks", tint = Color.White)
                 }
                 DropdownMenu(expanded = showAudioMenu, onDismissRequest = { showAudioMenu = false }) {
-                    // Audio "Off" button (disables audio)
-                     DropdownMenuItem(onClick = {
+                    DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
                             .build()
@@ -242,12 +231,12 @@ fun PlayerControls(
                         .forEach { tracksGroup ->
                             for (trackIndex in 0 until tracksGroup.length) {
                                 val format = tracksGroup.getTrackFormat(trackIndex)
-                                val trackName = if (!format.label.isNullOrBlank()) {
-                                    format.label
-                                } else if (!format.language.isNullOrBlank() && format.language != "und") {
-                                    Locale.forLanguageTag(format.language!!).displayName
-                                } else {
-                                    "Track ${trackIndex + 1}"
+                                // Fixed: Ensure trackName is a non-nullable String
+                                val trackName: String = when {
+                                    !format.label.isNullOrBlank() -> format.label!!
+                                    !format.language.isNullOrBlank() && format.language != "und" ->
+                                        Locale.forLanguageTag(format.language!!).displayName
+                                    else -> "Track ${trackIndex + 1}"
                                 }
                                 val isSelected = selectedAudioTrack?.let { it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex } ?: false
                                 DropdownMenuItem(onClick = {
