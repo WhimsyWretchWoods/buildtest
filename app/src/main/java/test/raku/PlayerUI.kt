@@ -68,15 +68,34 @@ fun PlayerControls(
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
-                val subtitleOverride = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]
-                selectedSubtitleTrack = if (subtitleOverride != null && subtitleOverride.trackIndices.isNotEmpty()) {
-                    Pair(subtitleOverride.trackGroup, subtitleOverride.trackIndices[0])
-                } else null
+                var newSelectedSubtitle: Pair<TrackGroup, Int>? = null
+                var newSelectedAudio: Pair<TrackGroup, Int>? = null
 
-                val audioOverride = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]
-                selectedAudioTrack = if (audioOverride != null && audioOverride.trackIndices.isNotEmpty()) {
-                    Pair(audioOverride.trackGroup, audioOverride.trackIndices[0])
-                } else null
+                // Iterate through the track groups to find the selected ones
+                for (trackGroup in tracks.groups) {
+                    if (!trackGroup.isSelected) continue
+
+                    when (trackGroup.type) {
+                        C.TRACK_TYPE_TEXT -> {
+                            for (i in 0 until trackGroup.length) {
+                                if (trackGroup.isTrackSelected(i)) {
+                                    newSelectedSubtitle = Pair(trackGroup.mediaTrackGroup, i)
+                                    break
+                                }
+                            }
+                        }
+                        C.TRACK_TYPE_AUDIO -> {
+                            for (i in 0 until trackGroup.length) {
+                                if (trackGroup.isTrackSelected(i)) {
+                                    newSelectedAudio = Pair(trackGroup.mediaTrackGroup, i)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                selectedSubtitleTrack = newSelectedSubtitle
+                selectedAudioTrack = newSelectedAudio
             }
 
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -88,21 +107,15 @@ fun PlayerControls(
             }
         }
         exoPlayer.addListener(listener)
-        // Initialize selected tracks on first composition
-        val initialSubtitleOverride = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]
-        selectedSubtitleTrack = if (initialSubtitleOverride != null && initialSubtitleOverride.trackIndices.isNotEmpty()) {
-            Pair(initialSubtitleOverride.trackGroup, initialSubtitleOverride.trackIndices[0])
-        } else null
 
-        val initialAudioOverride = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]
-        selectedAudioTrack = if (initialAudioOverride != null && initialAudioOverride.trackIndices.isNotEmpty()) {
-            Pair(initialAudioOverride.trackGroup, initialAudioOverride.trackIndices[0])
-        } else null
+        // Manually trigger the listener once to initialize the state correctly
+        listener.onTracksChanged(exoPlayer.currentTracks)
 
         onDispose {
             exoPlayer.removeListener(listener)
         }
     }
+
 
     LaunchedEffect(exoPlayer) {
         while (true) {
@@ -200,16 +213,16 @@ fun PlayerControls(
                             val format = tracksGroup.getTrackFormat(trackIndex)
                             val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
                             val isCurrentTrackSelected = selectedSubtitleTrack?.let {
-                                it.first == tracksGroup.getMediaTrackGroup() && it.second == trackIndex
+                                it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex
                             } ?: false
 
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
+                                        TrackSelectionOverride(tracksGroup.mediaTrackGroup, listOf(trackIndex))
                                     )
                                     .build()
-                                selectedSubtitleTrack = Pair(tracksGroup.getMediaTrackGroup(), trackIndex)
+                                // The onTracksChanged listener will update the state
                                 showSubtitleMenu = false
                             }) {
                                 Text(trackName)
@@ -234,6 +247,8 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_AUDIO
                     }
 
+                    // Note: You might want a "default" or "auto" option here as well.
+                    // For now, only providing an "Off" option for consistency.
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
@@ -241,7 +256,8 @@ fun PlayerControls(
                         selectedAudioTrack = null
                         showAudioMenu = false
                     }) {
-                        Text("Off")
+                        Text("Off") // Or "Default"
+                        // This check might not be robust enough for all cases, but follows the original logic
                         if (selectedAudioTrack == null) {
                             Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
                         }
@@ -252,16 +268,16 @@ fun PlayerControls(
                             val format = tracksGroup.getTrackFormat(trackIndex)
                             val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
                             val isCurrentTrackSelected = selectedAudioTrack?.let {
-                                it.first == tracksGroup.getMediaTrackGroup() && it.second == trackIndex
+                                it.first == tracksGroup.mediaTrackGroup && it.second == trackIndex
                             } ?: false
 
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
+                                        TrackSelectionOverride(tracksGroup.mediaTrackGroup, listOf(trackIndex))
                                     )
                                     .build()
-                                selectedAudioTrack = Pair(tracksGroup.getMediaTrackGroup(), trackIndex)
+                                // The onTracksChanged listener will update the state
                                 showAudioMenu = false
                             }) {
                                 Text(trackName)
