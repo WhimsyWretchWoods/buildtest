@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Slider
@@ -27,18 +29,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 
 @Composable
 fun PlayerControls(
     modifier: Modifier = Modifier,
-    exoPlayer: ExoPlayer,
+    exoPlayer: ExoPlayer, // ExoPlayer instance is now passed in
     onPlayPauseClick: () -> Unit,
     onStartOverClick: () -> Unit,
-    onSubtitleClick: () -> Unit,
-    onAudioClick: () -> Unit
+    onSubtitleClick: () -> Unit, // These are now placeholders, actual logic is internal
+    onAudioClick: () -> Unit // These are now placeholders, actual logic is internal
 ) {
     var isPlaying by remember(exoPlayer) {
         mutableStateOf(exoPlayer.playWhenReady && exoPlayer.playbackState == Player.STATE_READY)
@@ -48,6 +52,9 @@ fun PlayerControls(
     var duration by remember { mutableStateOf(0L) }
     var isSeeking by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf(0f) }
+
+    var showSubtitleMenu by remember { mutableStateOf(false) }
+    var showAudioMenu by remember { mutableStateOf(false) }
 
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
@@ -72,7 +79,7 @@ fun PlayerControls(
                 duration = exoPlayer.duration.coerceAtLeast(0L)
                 sliderPosition = currentPosition.toFloat()
             }
-            delay(1000) // Update every second
+            delay(1000)
         }
     }
 
@@ -96,7 +103,7 @@ fun PlayerControls(
             onValueChange = { newPosition ->
                 isSeeking = true
                 sliderPosition = newPosition
-                currentPosition = newPosition.toLong() // Update for display during drag
+                currentPosition = newPosition.toLong()
             },
             onValueChangeFinished = {
                 isSeeking = false
@@ -121,11 +128,89 @@ fun PlayerControls(
                     tint = Color.White
                 )
             }
-            IconButton(onClick = onSubtitleClick) {
-                Icon(Icons.Filled.Subtitles, contentDescription = "Subtitles", tint = Color.White)
+
+            // Subtitle Button and DropdownMenu
+            Box { // Box to anchor the DropdownMenu to the IconButton
+                IconButton(onClick = { showSubtitleMenu = !showSubtitleMenu }) {
+                    Icon(Icons.Filled.Subtitles, contentDescription = "Subtitles", tint = Color.White)
+                }
+                DropdownMenu(
+                    expanded = showSubtitleMenu,
+                    onDismissRequest = { showSubtitleMenu = false }
+                ) {
+                    val textTracks = exoPlayer.currentTracks.groups.filter {
+                        it.type == C.TRACK_TYPE_TEXT
+                    }
+
+                    // "Disable" option for subtitles
+                    DropdownMenuItem(onClick = {
+                        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                            .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                            .build()
+                        showSubtitleMenu = false
+                    }) {
+                        Text("Disable")
+                    }
+
+                    // List available subtitle tracks
+                    textTracks.forEach { trackGroup ->
+                        for (trackIndex in 0 until trackGroup.length) {
+                            val format = trackGroup.getFormat(trackIndex)
+                            DropdownMenuItem(onClick = {
+                                exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                                    .setOverrideForType(
+                                        TrackSelectionOverride(trackGroup, trackIndex)
+                                    )
+                                    .build()
+                                showSubtitleMenu = false
+                            }) {
+                                Text(format.language ?: format.id ?: "Track ${trackIndex + 1}")
+                            }
+                        }
+                    }
+                }
             }
-            IconButton(onClick = onAudioClick) {
-                Icon(Icons.Filled.Audiotrack, contentDescription = "Audio Tracks", tint = Color.White)
+
+            // Audio Button and DropdownMenu
+            Box { // Box to anchor the DropdownMenu to the IconButton
+                IconButton(onClick = { showAudioMenu = !showAudioMenu }) {
+                    Icon(Icons.Filled.Audiotrack, contentDescription = "Audio Tracks", tint = Color.White)
+                }
+                DropdownMenu(
+                    expanded = showAudioMenu,
+                    onDismissRequest = { showAudioMenu = false }
+                ) {
+                    val audioTracks = exoPlayer.currentTracks.groups.filter {
+                        it.type == C.TRACK_TYPE_AUDIO
+                    }
+
+                    // "Disable" option for audio (less common, but included for consistency)
+                    DropdownMenuItem(onClick = {
+                        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                            .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+                            .build()
+                        showAudioMenu = false
+                    }) {
+                        Text("Disable")
+                    }
+
+                    // List available audio tracks
+                    audioTracks.forEach { trackGroup ->
+                        for (trackIndex in 0 until trackGroup.length) {
+                            val format = trackGroup.getFormat(trackIndex)
+                            DropdownMenuItem(onClick = {
+                                exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                                    .setOverrideForType(
+                                        TrackSelectionOverride(trackGroup, trackIndex)
+                                    )
+                                    .build()
+                                showAudioMenu = false
+                            }) {
+                                Text(format.language ?: format.id ?: "Track ${trackIndex + 1}")
+                            }
+                        }
+                    }
+                }
             }
         }
     }
