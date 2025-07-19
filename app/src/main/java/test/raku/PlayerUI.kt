@@ -35,7 +35,8 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Box
-import androidx.media3.common.Tracks // Added import for Tracks.Group
+import androidx.media3.common.Tracks // Already there
+import androidx.media3.common.TrackGroup // Explicitly added this import
 
 @Composable
 fun PlayerControls(
@@ -152,14 +153,14 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    textTrackGroups.forEach { trackGroup: Tracks.Group ->
-                        for (trackIndex in 0 until trackGroup.length) {
-                            val format = trackGroup.getTrackFormat(trackIndex)
+                    textTrackGroups.forEach { tracksGroup: Tracks.Group -> // Renamed loop variable
+                        for (trackIndex in 0 until tracksGroup.length) {
+                            val format = tracksGroup.getTrackFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Corrected: Use trackGroup directly, not trackGroup.trackGroup
-                                        TrackSelectionOverride(trackGroup.trackGroup, listOf(trackIndex))
+                                        // Corrected: Use tracksGroup.trackGroup to get the actual TrackGroup
+                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
                                 showSubtitleMenu = false
@@ -192,14 +193,14 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    audioTrackGroups.forEach { trackGroup: Tracks.Group ->
-                        for (trackIndex in 0 until trackGroup.length) {
-                            val format = trackGroup.getTrackFormat(trackIndex)
+                    audioTrackGroups.forEach { tracksGroup: Tracks.Group -> // Renamed loop variable
+                        for (trackIndex in 0 until tracksGroup.length) {
+                            val format = tracksGroup.getTrackFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Corrected: Use trackGroup directly, not trackGroup.trackGroup
-                                        TrackSelectionOverride(trackGroup.trackGroup, listOf(trackIndex))
+                                        // Corrected: Use tracksGroup.trackGroup to get the actual TrackGroup
+                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
                                 showAudioMenu = false
