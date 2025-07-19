@@ -39,7 +39,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Box
 import androidx.media3.common.Tracks
 import androidx.media3.common.TrackGroup
-import androidx.compose.material.MaterialTheme // Import for MaterialTheme.colors.primary
+import androidx.compose.material.MaterialTheme
 
 @Composable
 fun PlayerControls(
@@ -62,8 +62,6 @@ fun PlayerControls(
     var showSubtitleMenu by remember { mutableStateOf(false) }
     var showAudioMenu by remember { mutableStateOf(false) }
 
-    // State to track currently selected subtitle and audio tracks for the checkmark
-    // Explicitly define the type for clarity
     var selectedSubtitleTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
     var selectedAudioTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
 
@@ -77,20 +75,16 @@ fun PlayerControls(
                 isPlaying = exoPlayer.playWhenReady && playbackState == Player.STATE_READY
             }
 
-            override fun onTracksChanged(tracks: Tracks) {
+            override fun fun onTracksChanged(tracks: Tracks) { // Changed fun to override
                 // Update selected track states when tracks change or selection parameters change
                 selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
-                    // Explicitly cast to TrackSelectionOverride to resolve 'trackGroup' reference
-                    val typedOverride = override as TrackSelectionOverride
-                    if (typedOverride.trackIndices.isNotEmpty()) {
-                        Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
+                    if (override.trackIndices.isNotEmpty()) {
+                        Pair(override.trackGroup, override.trackIndices[0])
                     } else null
                 }
                 selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
-                    // Explicitly cast to TrackSelectionOverride to resolve 'trackGroup' reference
-                    val typedOverride = override as TrackSelectionOverride
-                    if (typedOverride.trackIndices.isNotEmpty()) {
-                        Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
+                    if (override.trackIndices.isNotEmpty()) {
+                        Pair(override.trackGroup, override.trackIndices[0])
                     } else null
                 }
             }
@@ -98,15 +92,13 @@ fun PlayerControls(
         exoPlayer.addListener(listener)
         // Initialize selected tracks on first composition
         selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
-            val typedOverride = override as TrackSelectionOverride
-            if (typedOverride.trackIndices.isNotEmpty()) {
-                Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
+            if (override.trackIndices.isNotEmpty()) {
+                Pair(override.trackGroup, override.trackIndices[0])
             } else null
         }
         selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
-            val typedOverride = override as TrackSelectionOverride
-            if (typedOverride.trackIndices.isNotEmpty()) {
-                Pair(typedOverride.trackGroup, typedOverride.trackIndices[0])
+            if (override.trackIndices.isNotEmpty()) {
+                Pair(override.trackGroup, override.trackIndices[0])
             } else null
         }
 
@@ -211,16 +203,16 @@ fun PlayerControls(
                             val format = tracksGroup.getTrackFormat(trackIndex)
                             val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
                             val isCurrentTrackSelected = selectedSubtitleTrack?.let {
-                                it.first == tracksGroup.trackGroup && it.second == trackIndex
+                                it.first == tracksGroup.getMediaTrackGroup() && it.second == trackIndex
                             } ?: false
 
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
+                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
                                     )
                                     .build()
-                                selectedSubtitleTrack = Pair(tracksGroup.trackGroup, trackIndex)
+                                selectedSubtitleTrack = Pair(tracksGroup.getMediaTrackGroup(), trackIndex)
                                 showSubtitleMenu = false
                             }) {
                                 Text(trackName)
@@ -263,16 +255,16 @@ fun PlayerControls(
                             val format = tracksGroup.getTrackFormat(trackIndex)
                             val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
                             val isCurrentTrackSelected = selectedAudioTrack?.let {
-                                it.first == tracksGroup.trackGroup && it.second == trackIndex
+                                it.first == tracksGroup.getMediaTrackGroup() && it.second == trackIndex
                             } ?: false
 
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
+                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
                                     )
                                     .build()
-                                selectedAudioTrack = Pair(tracksGroup.trackGroup, trackIndex)
+                                selectedAudioTrack = Pair(tracksGroup.getMediaTrackGroup(), trackIndex)
                                 showAudioMenu = false
                             }) {
                                 Text(trackName)
