@@ -35,6 +35,9 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
 import androidx.media3.common.Player
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 
 import test.raku.util.zoomAndPan
 
@@ -42,6 +45,10 @@ import test.raku.util.zoomAndPan
 fun Player(uri: Uri, navController: NavController) {
     val context = LocalContext.current
     val view = LocalView.current
+    val lifecycleOwner: LifecycleOwner = remember(LocalView.current) {
+        val activity = view.context as? Activity
+        if (activity is LifecycleOwner) activity else throw IllegalStateException("Context is not a LifecycleOwner")
+    }
 
     val window = (view.context as? Activity)?.window
         ?: throw IllegalStateException("Cannot find window from the current view's context")
@@ -80,7 +87,7 @@ fun Player(uri: Uri, navController: NavController) {
     }
 
     // ExoPlayer lifecycle management and auto-repeat logic
-    DisposableEffect(exoPlayer, isAutoRepeatEnabled) {
+    DisposableEffect(exoPlayer, lifecycleOwner, isAutoRepeatEnabled) {
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_ENDED && isAutoRepeatEnabled) {
@@ -90,9 +97,24 @@ fun Player(uri: Uri, navController: NavController) {
             }
         }
         exoPlayer.addListener(listener)
+
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    exoPlayer.pause()
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    exoPlayer.play()
+                }
+                else -> { /* Do nothing */ }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
         onDispose {
             exoPlayer.removeListener(listener)
             exoPlayer.release()
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
         }
     }
 
@@ -135,7 +157,7 @@ fun Player(uri: Uri, navController: NavController) {
             exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 36.dp)
         ) {
             PlayerControls(
                 exoPlayer = exoPlayer
