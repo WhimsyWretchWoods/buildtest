@@ -153,13 +153,13 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    textTrackGroups.forEach { tracksGroup: Tracks.Group -> // Renamed loop variable
+                    textTrackGroups.forEach { tracksGroup: Tracks.Group ->
                         for (trackIndex in 0 until tracksGroup.length) {
                             val format = tracksGroup.getTrackFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Corrected: Use tracksGroup.trackGroup to get the actual TrackGroup
+                                        // Corrected: Pass tracksGroup directly, as Tracks.Group implements TrackGroup
                                         TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
@@ -193,13 +193,13 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    audioTrackGroups.forEach { tracksGroup: Tracks.Group -> // Renamed loop variable
+                    audioTrackGroups.forEach { tracksGroup: Tracks.Group ->
                         for (trackIndex in 0 until tracksGroup.length) {
                             val format = tracksGroup.getTrackFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Corrected: Use tracksGroup.trackGroup to get the actual TrackGroup
+                                        // Corrected: Pass tracksGroup directly, as Tracks.Group implements TrackGroup
                                         TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
