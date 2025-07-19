@@ -34,15 +34,16 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.Box // Added import for Box
 
 @Composable
 fun PlayerControls(
     modifier: Modifier = Modifier,
-    exoPlayer: ExoPlayer, // ExoPlayer instance is now passed in
+    exoPlayer: ExoPlayer,
     onPlayPauseClick: () -> Unit,
     onStartOverClick: () -> Unit,
-    onSubtitleClick: () -> Unit, // These are now placeholders, actual logic is internal
-    onAudioClick: () -> Unit // These are now placeholders, actual logic is internal
+    onSubtitleClick: () -> Unit,
+    onAudioClick: () -> Unit
 ) {
     var isPlaying by remember(exoPlayer) {
         mutableStateOf(exoPlayer.playWhenReady && exoPlayer.playbackState == Player.STATE_READY)
@@ -129,8 +130,7 @@ fun PlayerControls(
                 )
             }
 
-            // Subtitle Button and DropdownMenu
-            Box { // Box to anchor the DropdownMenu to the IconButton
+            Box {
                 IconButton(onClick = { showSubtitleMenu = !showSubtitleMenu }) {
                     Icon(Icons.Filled.Subtitles, contentDescription = "Subtitles", tint = Color.White)
                 }
@@ -142,7 +142,6 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_TEXT
                     }
 
-                    // "Disable" option for subtitles
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_TEXT)
@@ -152,14 +151,14 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    // List available subtitle tracks
                     textTracks.forEach { trackGroup ->
                         for (trackIndex in 0 until trackGroup.length) {
                             val format = trackGroup.getFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        TrackSelectionOverride(trackGroup, trackIndex)
+                                        // Explicitly creating a list for the TrackSelectionOverride constructor
+                                        TrackSelectionOverride(trackGroup, listOf(trackIndex))
                                     )
                                     .build()
                                 showSubtitleMenu = false
@@ -171,8 +170,7 @@ fun PlayerControls(
                 }
             }
 
-            // Audio Button and DropdownMenu
-            Box { // Box to anchor the DropdownMenu to the IconButton
+            Box {
                 IconButton(onClick = { showAudioMenu = !showAudioMenu }) {
                     Icon(Icons.Filled.Audiotrack, contentDescription = "Audio Tracks", tint = Color.White)
                 }
@@ -184,7 +182,6 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_AUDIO
                     }
 
-                    // "Disable" option for audio (less common, but included for consistency)
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
@@ -194,14 +191,14 @@ fun PlayerControls(
                         Text("Disable")
                     }
 
-                    // List available audio tracks
                     audioTracks.forEach { trackGroup ->
                         for (trackIndex in 0 until trackGroup.length) {
                             val format = trackGroup.getFormat(trackIndex)
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        TrackSelectionOverride(trackGroup, trackIndex)
+                                        // Explicitly creating a list for the TrackSelectionOverride constructor
+                                        TrackSelectionOverride(trackGroup, listOf(trackIndex))
                                     )
                                     .build()
                                 showAudioMenu = false
