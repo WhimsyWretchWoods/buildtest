@@ -159,8 +159,8 @@ fun PlayerControls(
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // This is the correct way for media3:1.7.1
-                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
+                                        // Corrected: Use getMediaTrackGroup() to get the TrackGroup
+                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
                                     )
                                     .build()
                                 showSubtitleMenu = false
@@ -199,8 +199,8 @@ fun PlayerControls(
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // This is the correct way for media3:1.7.1
-                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
+                                        // Corrected: Use getMediaTrackGroup() to get the TrackGroup
+                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
                                     )
                                     .build()
                                 showAudioMenu = false
