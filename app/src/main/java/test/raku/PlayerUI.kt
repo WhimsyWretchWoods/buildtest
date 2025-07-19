@@ -159,7 +159,7 @@ fun PlayerControls(
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Explicitly use tracksGroup.trackGroup for the TrackGroup parameter
+                                        // This is the correct way for media3:1.7.1
                                         TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
@@ -199,7 +199,7 @@ fun PlayerControls(
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Explicitly use tracksGroup.trackGroup for the TrackGroup parameter
+                                        // This is the correct way for media3:1.7.1
                                         TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
