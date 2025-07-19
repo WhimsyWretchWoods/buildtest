@@ -14,9 +14,11 @@ import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Audiotrack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,17 +37,18 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Box
-import androidx.media3.common.Tracks // Already there
-import androidx.media3.common.TrackGroup // Explicitly added this import
+import androidx.media3.common.Tracks
+import androidx.media3.common.TrackGroup
+import androidx.compose.material.MaterialTheme // Import for MaterialTheme.colors.primary
 
 @Composable
 fun PlayerControls(
     modifier: Modifier = Modifier,
     exoPlayer: ExoPlayer,
+    isAutoRepeatEnabled: Boolean, // Receive auto-repeat state
     onPlayPauseClick: () -> Unit,
     onStartOverClick: () -> Unit,
-    onSubtitleClick: () -> Unit,
-    onAudioClick: () -> Unit
+    onToggleAutoRepeat: () -> Unit // Callback for auto-repeat button
 ) {
     var isPlaying by remember(exoPlayer) {
         mutableStateOf(exoPlayer.playWhenReady && exoPlayer.playbackState == Player.STATE_READY)
@@ -59,6 +62,10 @@ fun PlayerControls(
     var showSubtitleMenu by remember { mutableStateOf(false) }
     var showAudioMenu by remember { mutableStateOf(false) }
 
+    // State to track currently selected subtitle and audio tracks for the checkmark
+    var selectedSubtitleTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
+    var selectedAudioTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
+
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -68,8 +75,34 @@ fun PlayerControls(
             override fun onPlaybackStateChanged(playbackState: Int) {
                 isPlaying = exoPlayer.playWhenReady && playbackState == Player.STATE_READY
             }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                // Update selected track states when tracks change or selection parameters change
+                selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
+                    if (override.trackIndices.isNotEmpty()) {
+                        Pair(override.trackGroup, override.trackIndices[0])
+                    } else null
+                }
+                selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
+                    if (override.trackIndices.isNotEmpty()) {
+                        Pair(override.trackGroup, override.trackIndices[0])
+                    } else null
+                }
+            }
         }
         exoPlayer.addListener(listener)
+        // Initialize selected tracks on first composition
+        selectedSubtitleTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_TEXT]?.let { override ->
+            if (override.trackIndices.isNotEmpty()) {
+                Pair(override.trackGroup, override.trackIndices[0])
+            } else null
+        }
+        selectedAudioTrack = exoPlayer.trackSelectionParameters.overrides[C.TRACK_TYPE_AUDIO]?.let { override ->
+            if (override.trackIndices.isNotEmpty()) {
+                Pair(override.trackGroup, override.trackIndices[0])
+            } else null
+        }
+
         onDispose {
             exoPlayer.removeListener(listener)
         }
@@ -124,6 +157,16 @@ fun PlayerControls(
             IconButton(onClick = onStartOverClick) {
                 Icon(Icons.Filled.Replay, contentDescription = "Start Over", tint = Color.White)
             }
+
+            // Auto-repeat button
+            IconButton(onClick = onToggleAutoRepeat) {
+                Icon(
+                    Icons.Filled.Repeat,
+                    contentDescription = "Auto Repeat",
+                    tint = if (isAutoRepeatEnabled) MaterialTheme.colors.primary else Color.White
+                )
+            }
+
             IconButton(onClick = onPlayPauseClick) {
                 Icon(
                     if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -144,28 +187,41 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_TEXT
                     }
 
+                    // "Off" option for subtitles
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_TEXT)
                             .build()
+                        selectedSubtitleTrack = null // Clear selection
                         showSubtitleMenu = false
                     }) {
-                        Text("Disable")
+                        Text("Off")
+                        if (selectedSubtitleTrack == null) {
+                            Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                        }
                     }
 
                     textTrackGroups.forEach { tracksGroup: Tracks.Group ->
                         for (trackIndex in 0 until tracksGroup.length) {
                             val format = tracksGroup.getTrackFormat(trackIndex)
+                            val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
+                            val isCurrentTrackSelected = selectedSubtitleTrack?.let {
+                                it.first == tracksGroup.trackGroup && it.second == trackIndex
+                            } ?: false
+
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Corrected: Use getMediaTrackGroup() to get the TrackGroup
-                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
+                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
+                                selectedSubtitleTrack = Pair(tracksGroup.trackGroup, trackIndex) // Update selection
                                 showSubtitleMenu = false
                             }) {
-                                Text(format.language ?: format.id ?: "Track ${trackIndex + 1}")
+                                Text(trackName)
+                                if (isCurrentTrackSelected) {
+                                    Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                                }
                             }
                         }
                     }
@@ -184,28 +240,41 @@ fun PlayerControls(
                         it.type == C.TRACK_TYPE_AUDIO
                     }
 
+                    // "Off" option for audio
                     DropdownMenuItem(onClick = {
                         exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                             .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
                             .build()
+                        selectedAudioTrack = null // Clear selection
                         showAudioMenu = false
                     }) {
-                        Text("Disable")
+                        Text("Off")
+                        if (selectedAudioTrack == null) {
+                            Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                        }
                     }
 
                     audioTrackGroups.forEach { tracksGroup: Tracks.Group ->
                         for (trackIndex in 0 until tracksGroup.length) {
                             val format = tracksGroup.getTrackFormat(trackIndex)
+                            val trackName = format.language?.takeIf { it != "und" && it.isNotBlank() } ?: format.id ?: "Track ${trackIndex + 1}"
+                            val isCurrentTrackSelected = selectedAudioTrack?.let {
+                                it.first == tracksGroup.trackGroup && it.second == trackIndex
+                            } ?: false
+
                             DropdownMenuItem(onClick = {
                                 exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                                     .setOverrideForType(
-                                        // Corrected: Use getMediaTrackGroup() to get the TrackGroup
-                                        TrackSelectionOverride(tracksGroup.getMediaTrackGroup(), listOf(trackIndex))
+                                        TrackSelectionOverride(tracksGroup.trackGroup, listOf(trackIndex))
                                     )
                                     .build()
+                                selectedAudioTrack = Pair(tracksGroup.trackGroup, trackIndex) // Update selection
                                 showAudioMenu = false
                             }) {
-                                Text(format.language ?: format.id ?: "Track ${trackIndex + 1}")
+                                Text(trackName)
+                                if (isCurrentTrackSelected) {
+                                    Icon(Icons.Filled.Check, contentDescription = "Selected", modifier = Modifier.padding(start = 8.dp))
+                                }
                             }
                         }
                     }
