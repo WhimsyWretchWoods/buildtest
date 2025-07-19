@@ -54,7 +54,7 @@ fun PlayerControls(
     var isSeeking by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf(0f) }
     var showSubtitleMenu by remember { mutableStateOf(false) }
-    var showAudioMenu by remember { mutableStateOf(false) } // Fixed typo: mutableStateOf
+    var showAudioMenu by remember { mutableStateOf(false) }
     var selectedSubtitleTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
     var selectedAudioTrack: Pair<TrackGroup, Int>? by remember { mutableStateOf(null) }
 
@@ -185,7 +185,6 @@ fun PlayerControls(
                         .forEach { tracksGroup ->
                             for (trackIndex in 0 until tracksGroup.length) {
                                 val format = tracksGroup.getTrackFormat(trackIndex)
-                                // Fixed: Ensure trackName is a non-nullable String
                                 val trackName: String = when {
                                     !format.label.isNullOrBlank() -> format.label!!
                                     !format.language.isNullOrBlank() && format.language != "und" ->
@@ -231,7 +230,6 @@ fun PlayerControls(
                         .forEach { tracksGroup ->
                             for (trackIndex in 0 until tracksGroup.length) {
                                 val format = tracksGroup.getTrackFormat(trackIndex)
-                                // Fixed: Ensure trackName is a non-nullable String
                                 val trackName: String = when {
                                     !format.label.isNullOrBlank() -> format.label!!
                                     !format.language.isNullOrBlank() && format.language != "und" ->
