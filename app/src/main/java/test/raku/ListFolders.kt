@@ -14,7 +14,7 @@ import androidx.navigation.NavController
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun ListFolders(navController: NavController) {
+fun ListFolders(navController: NavController, modifier: Modifier) {
     
     val context = LocalContext.current
     var folders by remember { mutableStateOf(emptyList<MediaStoreHelper.Folder>()) }
