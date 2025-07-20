@@ -16,9 +16,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import android.net.Uri
 import androidx.compose.material.Text
-import ui.test.ListFolders
-import ui.test.ListVideos
-import ui.test.Screen
 
 @Composable
 fun AppNav() {
