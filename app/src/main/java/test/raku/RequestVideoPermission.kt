@@ -1,4 +1,4 @@
-package ui.test
+package test.raku
 
 import android.Manifest
 import android.content.pm.PackageManager
