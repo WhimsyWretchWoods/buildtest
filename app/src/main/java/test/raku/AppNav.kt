@@ -1,16 +1,24 @@
 package test.raku
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
-import androidx.compose.material.Text
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import android.net.Uri
-import androidx.core.net.toUri
+import androidx.compose.material.Text
+import ui.test.ListFolders
+import ui.test.ListVideos
+import ui.test.Screen
 
 @Composable
 fun AppNav() {
@@ -22,7 +30,11 @@ fun AppNav() {
         exitTransition = { ExitTransition.None }
     ) {
         composable(Screen.ListFolders.route) {
-            ListFolders(navController = navController)
+            ListFolders(
+                navController = navController,
+                modifier = Modifier
+                    .padding(WindowInsets.statusBars.asPaddingValues())
+            )
         }
         composable(
             route = Screen.ListVideos.route,
@@ -30,13 +42,18 @@ fun AppNav() {
         ) { backStackEntry ->
             val folderId = backStackEntry.arguments?.getString("folderId")
             if (folderId != null) {
-                ListVideos(navController = navController, folderId = folderId)
+                ListVideos(
+                    navController = navController,
+                    folderId = folderId,
+                    modifier = Modifier
+                        .padding(WindowInsets.statusBars.asPaddingValues())
+                )
             } else {
                 Text("Error: Folder ID not found.")
             }
         }
         composable(
-            route = Screen.Player.route,
+            route = Screen.PlayerScreen.route, // Corrected route name
             arguments = listOf(navArgument("videoUri") { type = NavType.StringType })
         ) { backStackEntry ->
             val videoUriString = backStackEntry.arguments?.getString("videoUri")
