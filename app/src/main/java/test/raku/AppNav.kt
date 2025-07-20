@@ -1,4 +1,4 @@
-package ui.test
+package test.raku
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
