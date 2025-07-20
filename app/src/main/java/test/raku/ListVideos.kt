@@ -17,7 +17,7 @@ import java.io.File
 import android.net.Uri 
 
 @Composable
-fun ListVideos(navController: NavController, folderId: String) {
+fun ListVideos(navController: NavController, folderId: String, modifier: Modifier) {
     val context = LocalContext.current
     var videos by remember { mutableStateOf(emptyList<MediaStoreHelper.Video>()) }
 
