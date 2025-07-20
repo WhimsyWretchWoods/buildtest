@@ -50,7 +50,7 @@ fun AppNav() {
             }
         }
         composable(
-            route = Screen.PlayerScreen.route, // Corrected route name
+            route = Screen.Player.route,
             arguments = listOf(navArgument("videoUri") { type = NavType.StringType })
         ) { backStackEntry ->
             val videoUriString = backStackEntry.arguments?.getString("videoUri")
