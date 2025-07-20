@@ -12,6 +12,16 @@ import androidx.compose.animation.ExitTransition
 import android.net.Uri
 import androidx.core.net.toUri
 
+sealed class Screen(val route: String) {
+    object ListFolders: Screen("list_folders")
+    object ListVideos: Screen("list_videos/{folderId}") {
+        fun createRoute(folderId: String) = "list_videos/$folderId"
+    }
+    object Player: Screen("player/{videoUri}") {
+        fun createRoute(videoUri: Uri) = "player/${Uri.encode(videoUri.toString())}"
+    }
+}
+
 @Composable
 fun AppNav() {
     val navController = rememberNavController()
