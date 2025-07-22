@@ -160,19 +160,21 @@ fun Player() {
                 )
             }
         }
-    }
-    if (isFabVisible) {
-        HorizontalFloatingToolbar (
-            modifier = Modifier.align(Alignment.BottomEnd),
-            expanded = true,
-            content = {
-                IconButton(onClick = {}) {
-                    Icon(Icons.Filled.Subtitles, contentDescription = null)
+
+        if (isFabVisible) {
+            HorizontalFloatingToolbar (
+                modifier = Modifier.align(Alignment.BottomEnd),
+                expanded = true,
+                content = {
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Filled.Subtitles, contentDescription = null)
+                    }
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Filled.Settings, contentDescription = null)
+                    }
                 }
-                IconButton(onClick = {}) {
-                    Icon(Icons.Filled.Settings, contentDescription = null)
-                }
-            }
-        )
+            )
+        }
+
     }
 }
