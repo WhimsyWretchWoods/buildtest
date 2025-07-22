@@ -160,14 +160,8 @@ fun Player() {
     }
     if (isFabVisible) {
         HorizontalFloatingToolbar (
-            modifier = Modifier.align(BottomEnd),
+            modifier = Modifier.align(Alignment.BottomEnd),
             expanded = true,
-            leadingContent = {
-                LeadingContent()
-            },
-            trailingContent = {
-                TrailingContent()
-            },
             content = {
                 IconButton(onClick = {}) {
                     Icon(Icons.Filled.Subtitles, contentDescription = null)
